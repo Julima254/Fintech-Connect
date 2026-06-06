@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+     <div class="login-container">
+    <h2>Login</h2>
+    <p class="subtitle">Login to Fintech connect</p>
+
+    <% if (error.length > 0) { %>
+    <div class="flash-error"><%= error[0] %></div>
+<% } %>
+
+<% if (success.length > 0) { %>
+    <div class="flash-success"><%= success[0] %></div>
+<% } %>
+
+
+    <form action="/login" method="POST">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter username" required>
+
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter password" required>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <div class="links">
+        <a href="/forgot">Forgot password?</a>
+        <a href="/register">Create account</a>
+    </div>
+</div>
+</body>
+</html>

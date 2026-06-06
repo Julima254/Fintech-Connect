@@ -1,0 +1,201 @@
+/* =========================
+   BASE (MOBILE FIRST)
+========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* Background image */
+    background: linear-gradient(rgba(0, 0, 50, 0.75), rgba(0, 0, 50, 0.75)),
+        url("../images/background (1).jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* =========================
+   COMMON CARD STYLES
+========================= */
+
+.register-card,
+.login-container {
+    width: 90%;
+    max-width: 420px;
+    background: rgba(0, 0, 50, 0.85); /* dark blue glass effect */
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    color: white;
+}
+
+/* Titles */
+h2 {
+    text-align: center;
+    color: #00ff66; /* bright green */
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    color: yellow;
+    margin-bottom: 15px;
+}
+
+/* =========================
+   FLASH MESSAGES
+========================= */
+
+.flash,
+.flash-error,
+.flash-success {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.flash.error,
+.flash-error {
+    background: #ff3333;
+    color: white;
+}
+
+.flash.success,
+.flash-success {
+    background: #00ff66;
+    color: #003300;
+}
+
+/* =========================
+   FORM STYLES
+========================= */
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: yellow;
+    font-size: 14px;
+}
+
+input,
+select {
+    padding: 10px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+input:focus,
+select:focus {
+    border-color: #00ff66;
+    box-shadow: 0 0 8px #00ff66;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+button {
+    margin-top: 15px;
+    padding: 12px;
+    background: #00ff66;
+    color: #003300;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: yellow;
+    color: black;
+}
+
+/* =========================
+   LINKS
+========================= */
+
+a {
+    color: yellow;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+a:hover {
+    color: #00ff66;
+}
+
+.login-link,
+.links {
+    margin-top: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* =========================
+   TABLET VIEW
+========================= */
+
+@media (min-width: 600px) {
+    .register-card,
+    .login-container {
+        padding: 25px;
+        max-width: 480px;
+    }
+
+    input,
+    select {
+        font-size: 15px;
+    }
+
+    button {
+        font-size: 15px;
+    }
+}
+
+/* =========================
+   DESKTOP VIEW
+========================= */
+
+@media (min-width: 992px) {
+    .register-card,
+    .login-container {
+        max-width: 500px;
+        padding: 30px;
+        border-radius: 15px;
+    }
+
+    h2 {
+        font-size: 26px;
+    }
+
+    input,
+    select {
+        font-size: 16px;
+    }
+
+    button {
+        font-size: 16px;
+    }
+}

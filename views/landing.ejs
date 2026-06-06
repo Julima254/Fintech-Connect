@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>Fintech connect</title>
+
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root{
+    --dark-blue:#001f3f;
+    --bright-green:#00ff88;
+    --white:#ffffff;
+    --yellow:#ffd700;
+    --light-bg:#f5f7fa;
+}
+
+/* RESET */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Poppins', sans-serif;
+    background:var(--white);
+    overflow-x:hidden;
+    color:var(--white);
+}
+
+/* NAVBAR */
+.navbar{
+    width:100%;
+    padding:15px 5%;
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:1000;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    background:rgba(0, 31, 63, 0.9);
+    backdrop-filter:blur(6px);
+}
+
+/* LOGO */
+.logo-area{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.logo-area img{
+    width:45px;
+    height:45px;
+    object-fit:contain;
+}
+
+.logo-text{
+    font-size:18px;
+    font-weight:700;
+    color:var(--bright-green);
+}
+
+/* BUTTONS */
+.nav-buttons{
+    display:flex;
+    gap:10px;
+}
+
+.nav-buttons a{
+    text-decoration:none;
+    padding:8px 16px;
+    border-radius:30px;
+    font-size:14px;
+    font-weight:600;
+    transition:0.3s ease;
+}
+
+.login-btn{
+    border:2px solid var(--bright-green);
+    color:var(--white);
+}
+
+.register-btn{
+    background:var(--bright-green);
+    color:var(--dark-blue);
+}
+
+.nav-buttons a:hover{
+    transform:translateY(-2px);
+}
+
+/* HERO SECTION */
+.hero{
+    width:100%;
+    min-height:100vh;
+
+    background:
+    linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+    url('/images/background (6).jpg');
+
+    background-size:cover;
+    background-position:center;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    text-align:center;
+    padding:120px 7% 80px;
+}
+
+.hero-content{
+    max-width:900px;
+}
+
+.hero-content h1{
+    font-size:40px;
+    color:var(--bright-green);
+    margin-bottom:10px;
+    line-height:1.2;
+}
+
+.hero-content h2{
+    font-size:22px;
+    color:var(--yellow);
+    margin-bottom:25px;
+}
+
+.hero-content p{
+    font-size:15px;
+    line-height:1.9;
+    margin-bottom:20px;
+    color:#f0f0f0;
+}
+
+/* FEATURE SECTIONS */
+.feature-section{
+    width:100%;
+    min-height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:80px 7%;
+}
+
+/* DIFFERENT SECTION COLORS */
+.refer{
+    background:var(--dark-blue);
+}
+
+.tasks{
+    background:#01284f;
+}
+
+.freelancers{
+    background:#003366;
+}
+
+.shares{
+    background:#00152b;
+}
+
+/* FEATURE CONTAINER */
+.feature-container{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:40px;
+    align-items:center;
+    justify-content:center;
+}
+
+/* TEXT */
+.feature-text{
+    flex:1;
+    text-align:center;
+}
+
+.feature-text h2{
+    font-size:32px;
+    color:var(--bright-green);
+    margin-bottom:20px;
+}
+
+.feature-text p{
+    font-size:16px;
+    line-height:1.9;
+    color:#f1f1f1;
+}
+
+/* IMAGE */
+.feature-image{
+    flex:1;
+    text-align:center;
+}
+
+.feature-image img{
+    width:100%;
+    max-width:350px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+
+/* TABLET VIEW */
+@media(min-width:768px){
+
+    .navbar{
+        padding:18px 6%;
+    }
+
+    .logo-area img{
+        width:55px;
+        height:55px;
+    }
+
+    .logo-text{
+        font-size:22px;
+    }
+
+    .nav-buttons a{
+        padding:10px 20px;
+        font-size:15px;
+    }
+
+    .hero-content h1{
+        font-size:60px;
+    }
+
+    .hero-content h2{
+        font-size:28px;
+    }
+
+    .hero-content p{
+        font-size:17px;
+    }
+
+    .feature-text h2{
+        font-size:42px;
+    }
+
+    .feature-text p{
+        font-size:17px;
+    }
+
+    .feature-image img{
+        max-width:450px;
+    }
+}
+
+/* DESKTOP VIEW */
+@media(min-width:1024px){
+
+    .navbar{
+        padding:20px 8%;
+    }
+
+    .hero{
+        text-align:left;
+    }
+
+    .hero-content h1{
+        font-size:75px;
+    }
+
+    .hero-content h2{
+        font-size:34px;
+    }
+
+    .hero-content p{
+        font-size:18px;
+    }
+
+    .feature-container{
+        flex-direction:row;
+        justify-content:space-between;
+        gap:70px;
+    }
+
+    /* Reverse layout for alternating sections */
+    .tasks .feature-container,
+    .shares .feature-container{
+        flex-direction:row-reverse;
+    }
+
+    .feature-text{
+        text-align:left;
+    }
+
+    .feature-text h2{
+        font-size:52px;
+    }
+
+    .feature-image img{
+        max-width:500px;
+    }
+}
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+
+        <div class="logo-area">
+            <img src="/images/logo.png" alt="Logo">
+            <div class="logo-text">FINTECH CONNECT</div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/login" class="login-btn">Login</a>
+            <a href="/register" class="register-btn">Register</a>
+        </div>
+
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <h1>FINTECH CONNECT</h1>
+            <h2>Earn Smarter Online</h2>
+
+            <p>
+                FINTECH CONNECT is a modern online earning platform designed to help users generate income from the comfort of their homes. Whether you are a student, freelancer, entrepreneur, or job seeker, our platform gives you multiple ways to earn online using your skills, referrals, and investments.
+            </p>
+
+            <p>
+                With simple and user-friendly tools, users can complete online tasks, invite friends to earn commissions, hire talented freelancers, and even invest in digital share opportunities for passive profits. We connect technology with financial opportunities to help people grow online.
+            </p>
+
+            <p>
+                Join thousands of users building their income digitally every day. FINTECH CONNECT provides secure systems, flexible earning methods, and endless opportunities for people who want to work smarter and achieve financial freedom online.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- REFER AND EARN -->
+    <section class="feature-section refer">
+
+        <div class="feature-container">
+
+            <div class="feature-text">
+                <h2>Refer & Earn</h2>
+
+                <p>
+                    Invite your friends and family to join FINTECH CONNECT and earn commissions instantly. Share your referral link through social media, WhatsApp, or email and get rewarded every time someone joins through your link.
+                </p>
+            </div>
+
+            <div class="feature-image">
+                <img src="/images/refer and earn.png" alt="Refer and Earn">
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- TASKS -->
+    <section class="feature-section tasks">
+
+        <div class="feature-container">
+
+            <div class="feature-image">
+                <img src="/images/online gigs.png" alt="Online Gigs">
+            </div>
+
+            <div class="feature-text">
+                <h2>Do Tasks & Earn Money</h2>
+
+                <p>
+                    Complete simple online gigs such as surveys, promotions, reviews, social media engagements, and digital tasks to earn money daily. Flexible opportunities are available for everyone regardless of experience.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- FREELANCERS -->
+    <section class="feature-section freelancers">
+
+        <div class="feature-container">
+
+            <div class="feature-text">
+                <h2>Hire Freelancers</h2>
+
+                <p>
+                    Connect with skilled freelancers for graphic design, website development, writing, marketing, video editing, and more. Businesses and individuals can easily find professionals to complete projects quickly and affordably.
+                </p>
+            </div>
+
+            <div class="feature-image">
+                <img src="/images/hire freelancers.png" alt="Hire Freelancers">
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- SHARES -->
+    <section class="feature-section shares">
+
+        <div class="feature-container">
+
+            <div class="feature-image">
+                <img src="/images/buy shares.png" alt="Buy Shares">
+            </div>
+
+            <div class="feature-text">
+                <h2>Buy Shares & Earn Profits</h2>
+
+                <p>
+                    Invest in digital share opportunities and grow your income over time. Users can buy shares, monitor profits, and benefit from platform growth while building long-term passive income online.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+</body>
+</html>

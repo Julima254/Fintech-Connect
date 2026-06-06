@@ -1,0 +1,121 @@
+ <%- include('partials/header.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fintech connect</title>
+    <link rel="stylesheet" href="/styles/main.css"/>
+</head>
+<body>
+   
+
+<main class="user-dashboard">
+
+    <!-- ===================== TOP SUMMARY SECTION ====================== -->
+    <section class="dashboard-summary">
+
+        <div class="summary-item">
+            <p>My Package</p>
+            <h4><%= user.package || 'None' %></h4>
+        </div>
+
+        <div class="summary-item">
+            <p>Wallet Balance</p>
+            <h4>KES <span id="wallet-balance"><%= user.walletBalance || 0 %></span></h4>
+        </div>
+
+        <div class="summary-item">
+            <p>Referral Earnings</p>
+            <h4>KES <%= user.referralEarnings || 0 %></h4>
+        </div>
+
+        <div class="summary-item">
+            <p>Total Referrals</p>
+            <h4><%= totalReferrals %></h4>
+        </div>
+
+        <div class="summary-item">
+            <p>Deposit Balance</p>
+            <h4>KES <%= user.depositBalance || 0 %></h4>
+        </div>
+
+        <div class="summary-item">
+            <p>Tasks Balance</p>
+            <h4>KES <span id="tasks-balance"><%= user.tasksBalance || 0 %></span></h4>
+        </div>
+
+        <div class="summary-item">
+            <p>Shares Balance</p>
+            <h4>KES <span id="shares-balance"><%= user.sharesBalance || 0 %></span></h4>
+        </div>
+
+    </section>
+
+    <!-- ===================== ACTION BUTTONS ====================== -->
+    <section class="dashboard-actions">
+        <a href="/deposit" class="action-btn">Deposit</a>
+        <a href="/withdraw" class="action-btn">Withdraw</a>
+        <a href="/account-packages" class="action-btn">Upgrade Package</a>
+    </section>
+
+    <!-- ===================== RECENT TRANSACTIONS ====================== -->
+    <section class="recent-transactions">
+        <h4>Recent Transactions</h4>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% if (!transactions || transactions.length === 0) { %>
+                    <tr>
+                        <td colspan="4" style="text-align:center;">No transactions found</td>
+                    </tr>
+                <% } else { %>
+                    <% transactions.forEach(tx => { %>
+                        <tr>
+                            <td><%= tx.code %></td>
+                            <td>KES <%= tx.amount %></td>
+                            <td><%= tx.status %></td>
+                            <td><%= new Date(tx.createdAt).toDateString() %></td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </section>
+
+</main>
+
+<script>
+    const walletEl = document.getElementById("wallet-balance");
+    const tasksEl  = document.getElementById("tasks-balance");
+
+    async function updateBalances() {
+        try {
+            const res  = await fetch('/user/wallet');
+            const data = await res.json();
+
+            if (data.success) {
+                walletEl.textContent = data.walletBalance;
+                tasksEl.textContent  = data.tasksBalance || 0;
+            }
+        } catch (err) {
+            console.error("Failed to update balances:", err);
+        }
+    }
+
+    setInterval(updateBalances, 10000);
+</script>
+
+</body>
+</html>
+</body>
+</html>

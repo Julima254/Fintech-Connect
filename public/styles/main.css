@@ -1,0 +1,365 @@
+:root {
+    --navy:         #0A1628;
+    --navy-mid:     #112240;
+    --navy-light:   #1A3357;
+    --green:        #00E676;
+    --green-dim:    #00C853;
+    --yellow:       #FFD600;
+    --yellow-dim:   #FFC200;
+    --white:        #FFFFFF;
+    --white-muted:  #E8F0FE;
+    --text-muted:   #8BA3C0;
+    --border:       rgba(0, 230, 118, 0.18);
+    --radius-sm:    8px;
+    --radius-md:    12px;
+    --radius-lg:    16px;
+    --font-head:    'Syne', sans-serif;
+    --font-body:    'DM Sans', sans-serif;
+}
+
+/* ── BASE ── */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--navy);
+    color: var(--white-muted);
+    min-height: 100vh;
+}
+
+/* =============================================
+   DASHBOARD WRAPPER
+   ============================================= */
+.user-dashboard {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* =============================================
+   SUMMARY SECTION - MOBILE
+   ============================================= */
+.dashboard-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.summary-item {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.summary-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--green);
+    border-radius: 3px 0 0 3px;
+}
+
+.summary-item:nth-child(4n+2)::before { background: var(--yellow); }
+.summary-item:nth-child(4n+3)::before { background: var(--green-dim); }
+.summary-item:nth-child(4n+4)::before { background: var(--yellow-dim); }
+
+.summary-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 230, 118, 0.4);
+}
+
+.summary-item p {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.summary-item h4 {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--white);
+    word-break: break-word;
+}
+
+.summary-item h4 span {
+    color: var(--green);
+}
+
+/* Yellow accent for specific balances */
+.summary-item:nth-child(2) h4 span { color: var(--yellow); }
+.summary-item:nth-child(7) h4 span { color: var(--yellow); }
+
+/* =============================================
+   ACTION BUTTONS - MOBILE
+   ============================================= */
+.dashboard-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-btn {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+/* Deposit - Green */
+.action-btn:nth-child(1) {
+    background: var(--green);
+    color: var(--navy);
+}
+.action-btn:nth-child(1):hover {
+    background: var(--green-dim);
+    box-shadow: 0 4px 20px rgba(0, 230, 118, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Withdraw - Yellow */
+.action-btn:nth-child(2) {
+    background: var(--yellow);
+    color: var(--navy);
+}
+.action-btn:nth-child(2):hover {
+    background: var(--yellow-dim);
+    box-shadow: 0 4px 20px rgba(255, 214, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Upgrade - Outlined */
+.action-btn:nth-child(3) {
+    background: transparent;
+    color: var(--white-muted);
+    border: 1px solid var(--border);
+}
+.action-btn:nth-child(3):hover {
+    background: var(--navy-light);
+    border-color: var(--green);
+    color: var(--green);
+    transform: translateY(-1px);
+}
+
+/* =============================================
+   RECENT TRANSACTIONS - MOBILE
+   ============================================= */
+.recent-transactions {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1rem;
+    overflow-x: auto;
+}
+
+.recent-transactions h4 {
+    font-family: var(--font-head);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recent-transactions h4::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+}
+
+.recent-transactions table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 360px;
+}
+
+.recent-transactions thead tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.recent-transactions th {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.recent-transactions td {
+    padding: 0.75rem;
+    color: var(--white-muted);
+    border-bottom: 1px solid rgba(0, 230, 118, 0.06);
+    vertical-align: middle;
+}
+
+.recent-transactions tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.recent-transactions tbody tr:hover td {
+    background: rgba(0, 230, 118, 0.04);
+}
+
+/* Status badges */
+.recent-transactions td:nth-child(3) {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* You can add status classes in your EJS for colored badges */
+.status-completed { color: var(--green); }
+.status-pending   { color: var(--yellow); }
+.status-failed    { color: #ff6b6b; }
+
+/* Empty state */
+.recent-transactions td[colspan="4"] {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* =============================================
+   TABLET (≥ 600px)
+   ============================================= */
+@media (min-width: 600px) {
+
+    .user-dashboard {
+        padding: 1.5rem;
+    }
+
+    .dashboard-summary {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .summary-item h4 {
+        font-size: 18px;
+    }
+
+    .dashboard-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .recent-transactions {
+        padding: 1.5rem;
+    }
+
+    .recent-transactions table {
+        font-size: 14px;
+    }
+}
+
+/* =============================================
+   DESKTOP (≥ 1024px)
+   ============================================= */
+@media (min-width: 1024px) {
+
+    .user-dashboard {
+        padding: 2rem;
+    }
+
+    .dashboard-summary {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-item {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .summary-item p {
+        font-size: 12px;
+    }
+
+    .summary-item h4 {
+        font-size: 20px;
+    }
+
+    .dashboard-actions {
+        flex-direction: row;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-btn {
+        flex: 0 1 auto;
+        padding: 0.85rem 2rem;
+        font-size: 15px;
+    }
+
+    .recent-transactions {
+        padding: 2rem;
+    }
+
+    .recent-transactions h4 {
+        font-size: 17px;
+        margin-bottom: 1.25rem;
+    }
+
+    .recent-transactions th {
+        padding: 0.75rem 1rem;
+        font-size: 12px;
+    }
+
+    .recent-transactions td {
+        padding: 1rem;
+        font-size: 14px;
+    }
+}
+
+/* =============================================
+   LARGE DESKTOP (≥ 1280px)
+   ============================================= */
+@media (min-width: 1280px) {
+
+    .dashboard-summary {
+        grid-template-columns: repeat(7, 1fr);
+    }
+
+    .summary-item h4 {
+        font-size: 18px;
+    }
+}

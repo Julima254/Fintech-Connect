@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        /* ==========================================================================
+   1. BASE RESETS & VARIABLES (Theme Colors)
+   ========================================================================== */
+:root {
+    --dark-blue: #0A192F;
+    --bright-green: #00E676;
+    --yellow: #FFD600;
+    --white: #FFFFFF;
+    --light-blue: #172A45;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f6f9;
+    overflow-x: hidden; /* Prevents unwanted horizontal scrolling when menu is hidden */
+}
+
+/* ==========================================================================
+   2. MOBILE VIEW (Default / Baseline)
+   ========================================================================== */
+.header {
+    background-color: var(--dark-blue);
+    color: var(--white);
+    padding: 10px 20px;
+    position: relative;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Logo styling */
+.logo img {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+/* Admin Link */
+.admin-link {
+    color: var(--yellow);
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid var(--yellow);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.admin-link:hover {
+    background-color: var(--yellow);
+    color: var(--dark-blue);
+}
+
+/* User Info Panel */
+.userinfo {
+    text-align: right;
+    font-size: 0.85rem;
+    margin-left: auto;
+    margin-right: 30px;
+}
+
+.username {
+    display: block;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 0.75rem;
+    margin-top: 2px;
+}
+
+.status-dot {
+    height: 8px;
+    width: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status.active { color: var(--bright-green); }
+.status.active .status-dot { background-color: var(--bright-green); }
+.status.inactive { color: #ff4d4d; }
+.status.inactive .status-dot { background-color: #ff4d4d; }
+
+/* Hamburger Menu Button */
+.menu-toggle {
+    background: none;
+    border: none;
+    color: var(--bright-green);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s ease;
+    z-index: 1001; /* Keeps toggle above the drawer if needed */
+}
+
+.menu-toggle:hover {
+    color: var(--yellow);
+}
+
+/* Mobile Slide-out Drawer Navigation (70% Space)
+*/
+.nav {
+    position: fixed;
+    top: 0;
+    right: -70%; /* Entirely hidden off-screen by default */
+    width: 70%;  /* Occupies exactly 70% of screen width */
+    height: 100vh;
+    background-color: var(--light-blue);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease-in-out; /* Smooth slide transition */
+    padding-top: 80px; /* Leaves space so the menu links don't hide under the top bar */
+    z-index: 999;
+}
+
+/* Active Class controlled by your JS toggle */
+.nav.open {
+    right: 0; /* Slides into view */
+}
+
+.nav ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav ul li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav ul li a {
+    display: block;
+    color: var(--white);
+    text-decoration: none;
+    padding: 15px 20px;
+    font-size: 1rem;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.nav ul li a:hover {
+    background-color: var(--dark-blue);
+    color: var(--bright-green);
+    padding-left: 25px;
+}
+
+/* Highlights */
+#copyReferralLink { color: var(--yellow); }
+.logout-btn { color: #ff4d4d !important; }
+
+/* ==========================================================================
+   3. TABLET VIEW (Min-width: 600px)
+   ========================================================================== */
+@media screen and (min-width: 600px) {
+    .header {
+        padding: 15px 30px;
+    }
+    
+    .logo img {
+        height: 45px;
+    }
+
+    .userinfo {
+        font-size: 0.95rem;
+    }
+
+    /* Adjust drawer size to look cleaner on tablets */
+    .nav {
+        width: 40%;
+        right: -40%;
+    }
+}
+
+/* ==========================================================================
+   4. DESKTOP VIEW (Min-width: 1024px)
+   ========================================================================== */
+@media screen and (min-width: 1024px) {
+    .header {
+        padding: 15px 50px;
+    }
+
+    /* Adjust drawer size for desktop screens so it remains a sidebar overlay */
+    .nav {
+        width: 300px;
+        right: -300px;
+    }
+}
+    </style>
+</head>
+<body>
+    <header class="header">
+  <div class="nav-container">
+
+    <!-- Logo -->
+    <div class="logo">
+      <a href="/home">
+        <img src="/images/logono.png" alt="Fintech connect logo" />
+      </a>
+    </div>
+
+    <% if (currentUser && currentUser.isAdmin) { %>
+    <a href="/admin" class="admin-link">Admin</a>
+<% } %>
+
+
+    <!-- user account information-->
+     <div class="userinfo">
+  <% if(currentUser){ %>
+    <span class="username"><%= currentUser.username %></span>
+  <% } %>
+  <p class="status <%= user && user.package && user.package !== 'None' ? 'active' : 'inactive' %>">
+    <span class="status-dot"></span>
+    <%= user && user.package && user.package !== 'None' ? 'Active' : 'Inactive' %>
+</p>
+
+
+</div>
+    <!-- Hamburger menu (always visible) -->
+    <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <ul>
+        <li><a href="/home">Home</a></li>
+        <li><a href="/account-packages">Account Packages</a></li>
+        <li><a href="#" id="copyReferralLink">Copy referral Link</a></li>
+        <li><a href="/Tasks">Explore Tasks</a></li>
+        <li><a href="/Hire Freelancers">Hire Freelancers</a></li>
+        <li><a href="/Shares">Buy shares</a></li>
+        <li><a href="/transactions">Transactions</a></li>
+        <li><a href="/team">My Team</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li>
+  <a href="https://wa.me/254741058364" target="_blank" rel="noopener noreferrer">
+    Customer Care
+  </a>
+</li>
+        <li><a href="/logout" class="logout-btn">Logout</a></li>
+      </ul>
+    </nav>
+
+
+  </div>
+</header>
+
+<!-- Menu Toggle JS -->
+<script>
+const menuToggle = document.querySelector('.menu-toggle');
+const nav = document.querySelector('.nav');
+
+menuToggle.addEventListener('click', () => {
+    nav.classList.toggle('open');
+});
+</script>
+
+
+<script>
+const copyBtn = document.getElementById('copyReferralLink');
+
+copyBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Replace 'yourwebsite.com/register?ref=' with your actual referral URL
+    const referralLink = `<%= currentUser ? "https://vaultj-trading.onrender.com/register?ref=" + currentUser.username : "" %>`;
+
+    if (!referralLink) {
+        alert("No referral link available.");
+        return;
+    }
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(referralLink).then(() => {
+        alert("Referral link copied to clipboard!");
+    }).catch(err => {
+        console.error("Failed to copy: ", err);
+        alert("Failed to copy referral link.");
+    });
+});
+</script>
+</body>
+</html>
