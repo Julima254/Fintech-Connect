@@ -13,16 +13,25 @@ function isLoggedIn(req, res, next) {
 
 /* ── GENERATE ACCESS TOKEN ── */
 async function getAccessToken() {
-    const auth = Buffer.from(
-        `${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`
-    ).toString("base64");
+    try {
+        const auth = Buffer.from(
+            `${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`
+        ).toString("base64");
 
-    const res = await axios.get(
-        "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
-        { headers: { Authorization: `Basic ${auth}` } }
-    );
+        console.log("Getting token with key:", process.env.MPESA_CONSUMER_KEY?.slice(0, 6) + "...");
 
-    return res.data.access_token;
+        const res = await axios.get(
+            "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
+            { headers: { Authorization: `Basic ${auth}` } }
+        );
+
+        console.log("Token received:", res.data.access_token?.slice(0, 10) + "...");
+        return res.data.access_token;
+
+    } catch (err) {
+        console.error("Token error:", JSON.stringify(err.response?.data, null, 2));
+        throw new Error("Failed to get access token");
+    }
 }
 
 /* ── GENERATE PASSWORD ── */
@@ -46,6 +55,14 @@ router.get("/deposit", isLoggedIn, (req, res) => {
 
 /* ── STK PUSH ── */
 router.post("/deposit/stk", isLoggedIn, async (req, res) => {
+
+    console.log("ENV CHECK:", {
+        key:      process.env.MPESA_CONSUMER_KEY ? "SET" : "MISSING",
+        secret:   process.env.MPESA_CONSUMER_SECRET ? "SET" : "MISSING",
+        shortcode: process.env.MPESA_SHORTCODE,
+        callback: process.env.MPESA_CALLBACK_URL
+    });
+
     try {
         const { amount, phone } = req.body;
 
@@ -104,6 +121,7 @@ router.post("/deposit/stk", isLoggedIn, async (req, res) => {
         res.json({ success: false, message: "STK push failed. Please use paybill option." });
     }
 });
+
 
 /* ── MPESA CALLBACK (Daraja calls this) ── */
 router.post("/deposit/callback", async (req, res) => {
