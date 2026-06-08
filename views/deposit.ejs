@@ -1,0 +1,278 @@
+<%- include('partials/header.ejs'); -%>
+
+<main class="deposit-page">
+
+    <h2>Deposit Funds</h2>
+
+    <% if (success && success.length > 0) { %>
+        <div class="flash success"><%= success[0] %></div>
+    <% } %>
+    <% if (error && error.length > 0) { %>
+        <div class="flash error"><%= error[0] %></div>
+    <% } %>
+
+    <!-- ── STK PUSH FORM ── -->
+    <div class="deposit-card" id="stk-section">
+        <h3>Pay via M-Pesa Prompt</h3>
+        <p class="sub">We'll send a payment prompt to your phone</p>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" id="stk-phone" placeholder="07XXXXXXXX" maxlength="10"/>
+        </div>
+
+        <div class="form-group">
+            <label>Amount (KES)</label>
+            <input type="number" id="stk-amount" placeholder="e.g. 500" min="10"/>
+        </div>
+
+        <button class="btn-green" id="stk-btn" onclick="sendSTK()">Send M-Pesa Prompt</button>
+
+        <p id="stk-msg" class="msg"></p>
+
+        <p class="fallback-link">
+            Prompt not received?
+            <a href="#" onclick="toggleManual()">Use Paybill instead</a>
+        </p>
+    </div>
+
+    <!-- ── MANUAL PAYBILL FORM ── -->
+    <div class="deposit-card hidden" id="manual-section">
+        <h3>Pay via Paybill</h3>
+
+        <div class="paybill-info">
+            <div class="paybill-row">
+                <span>Paybill Number</span>
+                <strong><%= process.env.MPESA_SHORTCODE || '174379' %></strong>
+            </div>
+            <div class="paybill-row">
+                <span>Account Number</span>
+                <strong><%= currentUser.username %></strong>
+            </div>
+        </div>
+
+        <p class="sub">After paying, paste your M-Pesa confirmation code below:</p>
+
+        <form action="/deposit/manual" method="POST">
+            <div class="form-group">
+                <label>Amount Paid (KES)</label>
+                <input type="number" name="amount" placeholder="e.g. 500" min="10" required/>
+            </div>
+
+            <div class="form-group">
+                <label>M-Pesa Code</label>
+                <input type="text" name="code" placeholder="e.g. RGH7XXXXXX"
+                       style="text-transform:uppercase" required/>
+            </div>
+
+            <button type="submit" class="btn-yellow">Submit Code</button>
+        </form>
+
+        <p class="fallback-link">
+            <a href="#" onclick="toggleManual()">← Back to M-Pesa Prompt</a>
+        </p>
+    </div>
+
+</main>
+
+<style>
+    .deposit-page {
+        max-width: 480px;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+
+    .deposit-page h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        color: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .deposit-card {
+        background: #112240;
+        border: 1px solid rgba(0,230,118,0.18);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .deposit-card h3 {
+        font-family: 'Syne', sans-serif;
+        color: #00E676;
+        font-size: 17px;
+        margin-bottom: 0.25rem;
+    }
+
+    .sub {
+        font-size: 13px;
+        color: #8BA3C0;
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 12px;
+        color: #8BA3C0;
+        margin-bottom: 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: #0A1628;
+        border: 1px solid rgba(0,230,118,0.2);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .form-group input:focus {
+        border-color: #00E676;
+    }
+
+    .btn-green {
+        width: 100%;
+        padding: 0.85rem;
+        background: #00E676;
+        color: #0A1628;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        transition: background 0.2s;
+    }
+
+    .btn-green:hover { background: #00C853; }
+
+    .btn-yellow {
+        width: 100%;
+        padding: 0.85rem;
+        background: #FFD600;
+        color: #0A1628;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-yellow:hover { background: #FFC200; }
+
+    .paybill-info {
+        background: #0A1628;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .paybill-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0,230,118,0.1);
+        font-size: 14px;
+        color: #E8F0FE;
+    }
+
+    .paybill-row:last-child { border-bottom: none; }
+    .paybill-row strong { color: #FFD600; }
+
+    .fallback-link {
+        text-align: center;
+        font-size: 13px;
+        color: #8BA3C0;
+        margin-top: 0.75rem;
+    }
+
+    .fallback-link a {
+        color: #00E676;
+        text-decoration: none;
+    }
+
+    .msg {
+        font-size: 13px;
+        margin-top: 0.5rem;
+        min-height: 20px;
+    }
+
+    .msg.success { color: #00E676; }
+    .msg.error   { color: #ff6b6b; }
+
+    .hidden { display: none; }
+
+    .flash {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 14px;
+    }
+
+    .flash.success { background: rgba(0,230,118,0.1); color: #00E676; border: 1px solid #00E676; }
+    .flash.error   { background: rgba(255,107,107,0.1); color: #ff6b6b; border: 1px solid #ff6b6b; }
+</style>
+
+<script>
+    function toggleManual() {
+        document.getElementById("stk-section").classList.toggle("hidden");
+        document.getElementById("manual-section").classList.toggle("hidden");
+    }
+
+    async function sendSTK() {
+        const phone  = document.getElementById("stk-phone").value.trim();
+        const amount = document.getElementById("stk-amount").value.trim();
+        const btn    = document.getElementById("stk-btn");
+        const msg    = document.getElementById("stk-msg");
+
+        if (!phone || !amount) {
+            msg.textContent = "Please fill in phone and amount.";
+            msg.className   = "msg error";
+            return;
+        }
+
+        btn.disabled    = true;
+        btn.textContent = "Sending...";
+        msg.textContent = "";
+
+        try {
+            const res  = await fetch("/deposit/stk", {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({ phone, amount })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                msg.textContent = "✓ Prompt sent! Check your phone and enter your PIN.";
+                msg.className   = "msg success";
+            } else {
+                msg.textContent = data.message || "Failed. Use paybill option below.";
+                msg.className   = "msg error";
+                setTimeout(toggleManual, 2000);
+            }
+
+        } catch (err) {
+            msg.textContent = "Network error. Try paybill option.";
+            msg.className   = "msg error";
+        }
+
+        btn.disabled    = false;
+        btn.textContent = "Send M-Pesa Prompt";
+    }
+</script>
+
+</body>
+</html>

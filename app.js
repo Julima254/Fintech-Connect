@@ -10,7 +10,8 @@ const User = require("./models/User");
 const homeRoutes = require('./routes/home');
 
 //routes
-const authRoutes = require('./routes/auth')
+const authRoutes = require('./routes/auth');
+const depositRoutes = require('./routes/deposit');
 
 
 
@@ -69,6 +70,7 @@ app.use((req, res, next) => {
 app.use("/", authRoutes);
 app.get("/", (req, res) => res.render("landing"));
 app.use("/", homeRoutes);
+app.use("/", depositRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3000;
