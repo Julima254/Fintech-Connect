@@ -76,10 +76,32 @@
 </main>
 
 <style>
+    /* ── BACKGROUND IMAGE WITH OVERLAY ── */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url('/images/background (1).jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -2;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(5, 12, 28, 0.82);
+        z-index: -1;
+    }
+
+    /* ── PAGE ── */
     .deposit-page {
         max-width: 480px;
         margin: 2rem auto;
         padding: 1rem;
+        min-height: calc(100vh - 64px);
     }
 
     .deposit-page h2 {
@@ -87,14 +109,20 @@
         font-size: 22px;
         color: #fff;
         margin-bottom: 1.5rem;
+        text-align: center;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
 
+    /* ── CARDS ── */
     .deposit-card {
-        background: #112240;
-        border: 1px solid rgba(0,230,118,0.18);
+        background: rgba(17, 34, 64, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 230, 118, 0.18);
         border-radius: 14px;
         padding: 1.5rem;
         margin-bottom: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
     .deposit-card h3 {
@@ -110,6 +138,7 @@
         margin-bottom: 1.25rem;
     }
 
+    /* ── FORM ── */
     .form-group {
         margin-bottom: 1rem;
     }
@@ -126,18 +155,21 @@
     .form-group input {
         width: 100%;
         padding: 0.75rem 1rem;
-        background: #0A1628;
-        border: 1px solid rgba(0,230,118,0.2);
+        background: rgba(10, 22, 40, 0.8);
+        border: 1px solid rgba(0, 230, 118, 0.2);
         border-radius: 8px;
         color: #fff;
         font-size: 14px;
         outline: none;
+        transition: border-color 0.2s;
     }
 
     .form-group input:focus {
         border-color: #00E676;
+        background: rgba(10, 22, 40, 0.95);
     }
 
+    /* ── BUTTONS ── */
     .btn-green {
         width: 100%;
         padding: 0.85rem;
@@ -150,10 +182,20 @@
         border-radius: 8px;
         cursor: pointer;
         margin-bottom: 1rem;
-        transition: background 0.2s;
+        transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
     }
 
-    .btn-green:hover { background: #00C853; }
+    .btn-green:hover {
+        background: #00C853;
+        box-shadow: 0 4px 20px rgba(0, 230, 118, 0.35);
+        transform: translateY(-1px);
+    }
+
+    .btn-green:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
 
     .btn-yellow {
         width: 100%;
@@ -166,13 +208,18 @@
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
     }
 
-    .btn-yellow:hover { background: #FFC200; }
+    .btn-yellow:hover {
+        background: #FFC200;
+        box-shadow: 0 4px 20px rgba(255, 214, 0, 0.35);
+        transform: translateY(-1px);
+    }
 
+    /* ── PAYBILL INFO ── */
     .paybill-info {
-        background: #0A1628;
+        background: rgba(10, 22, 40, 0.8);
         border-radius: 8px;
         padding: 1rem;
         margin-bottom: 1.25rem;
@@ -182,7 +229,7 @@
         display: flex;
         justify-content: space-between;
         padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(0,230,118,0.1);
+        border-bottom: 1px solid rgba(0, 230, 118, 0.1);
         font-size: 14px;
         color: #E8F0FE;
     }
@@ -190,6 +237,7 @@
     .paybill-row:last-child { border-bottom: none; }
     .paybill-row strong { color: #FFD600; }
 
+    /* ── MISC ── */
     .fallback-link {
         text-align: center;
         font-size: 13px;
@@ -202,10 +250,15 @@
         text-decoration: none;
     }
 
+    .fallback-link a:hover {
+        text-decoration: underline;
+    }
+
     .msg {
         font-size: 13px;
         margin-top: 0.5rem;
         min-height: 20px;
+        text-align: center;
     }
 
     .msg.success { color: #00E676; }
@@ -220,8 +273,44 @@
         font-size: 14px;
     }
 
-    .flash.success { background: rgba(0,230,118,0.1); color: #00E676; border: 1px solid #00E676; }
-    .flash.error   { background: rgba(255,107,107,0.1); color: #ff6b6b; border: 1px solid #ff6b6b; }
+    .flash.success {
+        background: rgba(0, 230, 118, 0.1);
+        color: #00E676;
+        border: 1px solid #00E676;
+    }
+
+    .flash.error {
+        background: rgba(255, 107, 107, 0.1);
+        color: #ff6b6b;
+        border: 1px solid #ff6b6b;
+    }
+
+    /* ── TABLET ── */
+    @media (min-width: 600px) {
+        .deposit-page {
+            padding: 2rem 1rem;
+        }
+
+        .deposit-page h2 {
+            font-size: 26px;
+        }
+
+        .deposit-card {
+            padding: 2rem;
+        }
+    }
+
+    /* ── DESKTOP ── */
+    @media (min-width: 1024px) {
+        .deposit-page {
+            margin: 3rem auto;
+        }
+
+        .deposit-page h2 {
+            font-size: 28px;
+            margin-bottom: 2rem;
+        }
+    }
 </style>
 
 <script>
