@@ -1,0 +1,127 @@
+ <%- include('partials/header.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fintech Connect Shares | Coming Soon</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkblue: '#0F2942',     // Professional Deep Navy for text/accents
+                        brightgreen: '#00B67A',   // Clean, Vibrant Success Green
+                        lightbg: '#F4F7F9'        // Soft Off-White/Light Gray background
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-lightbg text-darkblue font-sans min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- Header / Navbar Section -->
+    <header class="w-full max-w-7xl mx-auto px-6 py-5 flex justify-between items-center bg-white border-b border-gray-100 shadow-sm sm:shadow-none sm:bg-transparent">
+        <div class="flex items-center gap-2 text-xl font-bold tracking-tight text-darkblue">
+            <!-- Simple Custom Logo Mark -->
+            <svg class="w-6 h-6 text-brightgreen" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            Fintech <span class="text-brightgreen">Connect</span>
+        </div>
+        <div>
+            <a href="#notify-section" class="bg-brightgreen hover:bg-[#00A36C] text-white font-semibold text-sm px-5 py-2.5 rounded-full transition duration-300 shadow-md shadow-brightgreen/20">
+                Notify Me
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Container (Mobile-First Layout) -->
+    <main class="w-full max-w-4xl mx-auto px-4 sm:px-8 lg:px-12 py-10 flex-grow flex flex-col items-center text-center">
+        
+        <!-- FIRST THING USERS NOTICE: Main Coming Soon Heading Stack -->
+        <div class="space-y-2 mb-8">
+            <h2 class="text-xs md:text-sm font-extrabold uppercase tracking-widest text-darkblue/60">
+                Fintech Connect Shares
+            </h2>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-darkblue uppercase leading-none">
+                Is <span class="text-brightgreen block sm:inline">Coming Soon</span>
+            </h1>
+        </div>
+
+        <!-- The Showcase Feature Image -->
+        <div class="w-full max-w-md md:max-w-xl mx-auto mb-8 transition-transform duration-500 hover:scale-[1.01]">
+            <img 
+                src="/images/buy shares.png" 
+                alt="Fintech Connect Share Management Dashboard Preview" 
+                class="w-full h-auto drop-shadow-xl rounded-2xl"
+            >
+        </div>
+
+        <!-- Short Description Paragraph -->
+        <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed mb-10">
+            Get ready to unlock new investment opportunities and multiply your wealth. We are building a secure, intuitive platform for simple share purchasing and automated dividend growth.
+        </p>
+
+        <!-- Feature Split Cards (Stacked on Mobile, Row on Tablet/Desktop) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl mx-auto text-left mb-12">
+            <!-- Card 1 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition">
+                <div>
+                    <div class="w-10 h-10 bg-brightgreen/10 text-brightgreen rounded-xl flex items-center justify-center mb-4 font-bold">
+                        📈
+                    </div>
+                    <h3 class="text-lg font-bold text-darkblue mb-2">Seamless Share Ownership</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Securely acquire and track fractional shares from a global market with a clear interface.</p>
+                </div>
+                <span class="absolute top-4 right-6 text-4xl font-black text-gray-100 select-none pointer-events-none">1</span>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition">
+                <div>
+                    <div class="w-10 h-10 bg-brightgreen/10 text-brightgreen rounded-xl flex items-center justify-center mb-4 font-bold">
+                        💰
+                    </div>
+                    <h3 class="text-lg font-bold text-darkblue mb-2">Simple Profit Distribution</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Earn dividends effortlessly and manage your growing earnings with a modern dashboard.</p>
+                </div>
+                <span class="absolute top-4 right-6 text-4xl font-black text-gray-100 select-none pointer-events-none">2</span>
+            </div>
+        </div>
+
+        <!-- Integrated Notification / Call To Action Footer Card -->
+        <div id="notify-section" class="w-full max-w-3xl mx-auto bg-white border border-gray-100 shadow-md sm:shadow-sm rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-left">
+            <div class="space-y-1 text-center sm:text-left">
+                <h4 class="text-lg font-bold text-darkblue">Stay Informed</h4>
+                <p class="text-sm text-gray-400">Be First to Access.</p>
+            </div>
+            
+            <form class="w-full sm:w-auto flex flex-col sm:flex-row gap-3 flex-grow max-w-md justify-end">
+                <input 
+                    type="email" 
+                    placeholder="Email" 
+                    required 
+                    class="w-full sm:max-w-xs px-4 py-3 rounded-xl bg-lightbg border border-gray-200 text-darkblue focus:outline-none focus:border-brightgreen text-sm transition placeholder-gray-400"
+                >
+                <button 
+                    type="submit" 
+                    class="w-full sm:w-auto bg-brightgreen hover:bg-[#00A36C] text-white font-bold text-sm px-6 py-3 rounded-xl transition shadow-md shadow-brightgreen/10 whitespace-nowrap"
+                >
+                    Notify Me
+                </button>
+            </form>
+        </div>
+
+    </main>
+
+    <!-- Footer copyright section -->
+    <footer class="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-gray-400 border-t border-gray-200/50 mt-10">
+        &copy; 2026 Fintech Connect. All rights reserved.
+    </footer>
+
+</body>
+</html>

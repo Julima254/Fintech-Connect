@@ -1,7 +1,7 @@
 const express = require("express");
 const router  = express.Router();
 const User    = require("../models/User");
-
+const Transaction = require("../models/Transaction");
 /* ── AUTH GUARD ── */
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) return next();
@@ -16,10 +16,14 @@ router.get("/home", isLoggedIn, async (req, res) => {
 
         const totalReferrals = await User.countDocuments({ referrer: req.user._id });
 
+        const transactions = await Transaction.find({ user: req.user._id })
+            .sort({ createdAt: -1 })
+            .limit(10);
+
         res.render("home", {
             user,
             totalReferrals,
-            transactions: []   // replace with real Transaction query later
+            transactions
         });
 
     } catch (err) {

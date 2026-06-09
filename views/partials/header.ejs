@@ -25,7 +25,8 @@
 
 body {
     background-color: #f4f6f9;
-    overflow-x: hidden; /* Prevents unwanted horizontal scrolling when menu is hidden */
+    overflow-x: hidden;
+    padding-top: 65px; 
 }
 
 /* ==========================================================================
@@ -35,7 +36,10 @@ body {
     background-color: var(--dark-blue);
     color: var(--white);
     padding: 10px 20px;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     z-index: 1000;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
@@ -249,7 +253,7 @@ body {
         <li><a href="#" id="copyReferralLink">Copy referral Link</a></li>
         <li><a href="/Tasks">Explore Tasks</a></li>
         <li><a href="/Hire Freelancers">Hire Freelancers</a></li>
-        <li><a href="/Shares">Buy shares</a></li>
+        <li><a href="/shares">Buy shares</a></li>
         <li><a href="/transactions">Transactions</a></li>
         <li><a href="/team">My Team</a></li>
         <li><a href="/profile">Profile</a></li>
@@ -284,7 +288,7 @@ copyBtn.addEventListener('click', (e) => {
     e.preventDefault();
 
     // Replace 'yourwebsite.com/register?ref=' with your actual referral URL
-    const referralLink = `<%= currentUser ? "https://vaultj-trading.onrender.com/register?ref=" + currentUser.username : "" %>`;
+    const referralLink = `<%= currentUser ? "https://fintech-connect.onrender.com/.com/register?ref=" + currentUser.username : "" %>`;
 
     if (!referralLink) {
         alert("No referral link available.");

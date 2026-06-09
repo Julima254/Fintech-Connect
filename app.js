@@ -13,6 +13,7 @@ const homeRoutes = require('./routes/home');
 const authRoutes = require('./routes/auth');
 const depositRoutes = require('./routes/deposit');
 const adminRoutes = require('./routes/admin');
+const sharesRouter = require('./routes/shares');
 
 
 
@@ -73,7 +74,7 @@ app.get("/", (req, res) => res.render("landing"));
 app.use("/", homeRoutes);
 app.use("/", depositRoutes);
 app.use("/", adminRoutes);
-
+app.use('/shares', sharesRouter);
 
 // Start server
 const PORT = process.env.PORT || 3000;
