@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Admin</title>
+    <style>
+        :root {
+            --navy:         #030D1A;
+            --navy-mid:     #071428;
+            --navy-card:    #0B1E38;
+            --green:        #00E676;
+            --green-glow:   rgba(0, 230, 118, 0.12);
+            --green-border: rgba(0, 230, 118, 0.2);
+            --yellow:       #FFD600;
+            --yellow-glow:  rgba(255, 214, 0, 0.12);
+            --white:        #FFFFFF;
+            --white-dim:    #C8D8EE;
+            --muted:        #4A6A8A;
+            --danger:       #FF4D6D;
+            --sidebar-w:    260px;
+            --topbar-h:     60px;
+            --font-display: 'Orbitron', monospace;
+            --font-body:    'Space Grotesk', sans-serif;
+            --transition:   0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--navy);
+            color: var(--white-dim);
+            overflow-x: hidden;
+        }
+
+        /* ══ TOPBAR (mobile) ══ */
+        .admin-menu-toggle {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1100;
+            width: 100%;
+            height: var(--topbar-h);
+            background: var(--navy-mid);
+            border: none;
+            border-bottom: 1px solid var(--green-border);
+            display: flex;
+            align-items: center;
+            padding: 0 1.25rem;
+            gap: 1rem;
+            cursor: pointer;
+        }
+
+        .admin-menu-toggle .hb {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 24px;
+            flex-shrink: 0;
+        }
+
+        .admin-menu-toggle .hb span {
+            display: block;
+            height: 2px;
+            background: var(--green);
+            border-radius: 2px;
+            transition: var(--transition);
+            transform-origin: center;
+        }
+
+        .admin-menu-toggle.active .hb span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .admin-menu-toggle.active .hb span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .admin-menu-toggle.active .hb span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        .admin-menu-toggle .brand {
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--green);
+            text-transform: uppercase;
+        }
+
+        .admin-menu-toggle::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--green), var(--yellow), var(--green));
+            opacity: 0.5;
+        }
+
+        /* ══ OVERLAY ══ */
+        .admin-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 13, 26, 0.75);
+            backdrop-filter: blur(3px);
+            z-index: 1050;
+        }
+
+        .admin-overlay.show { display: block; }
+
+        /* ══ SIDEBAR ══ */
+        .admin-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: var(--navy-mid);
+            border-right: 1px solid var(--green-border);
+            z-index: 1099;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform var(--transition);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--green-border) transparent;
+        }
+
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,230,118,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,230,118,0.025) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+        }
+
+        .admin-header.open { transform: translateX(0); }
+
+        /* ── Logo ── */
+        .logo-container {
+            padding: 1.5rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--green-border);
+            position: relative;
+        }
+
+        .logo-container a {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+        }
+
+        .logo-container img {
+            height: 36px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(0,230,118,0.35));
+        }
+
+        .logo-container::after {
+            content: 'ADMIN PANEL';
+            display: block;
+            font-family: var(--font-display);
+            font-size: 8px;
+            letter-spacing: 0.2em;
+            color: var(--yellow);
+            margin-top: 0.5rem;
+        }
+
+        /* ── Nav ── */
+        .admin-nav {
+            flex: 1;
+            padding: 1rem 0;
+            position: relative;
+        }
+
+        .admin-nav ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-nav ul::before {
+            content: 'MENU';
+            display: block;
+            font-family: var(--font-display);
+            font-size: 8px;
+            letter-spacing: 0.2em;
+            color: var(--muted);
+            padding: 0 1.25rem 0.75rem;
+        }
+
+        .admin-nav ul li a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.8rem 1.25rem;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--white-dim);
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: var(--transition);
+        }
+
+        .admin-nav ul li a::before {
+            content: '›';
+            font-size: 18px;
+            color: var(--muted);
+            line-height: 1;
+            transition: var(--transition);
+        }
+
+        .admin-nav ul li a:hover {
+            color: var(--green);
+            background: var(--green-glow);
+            border-left-color: var(--green);
+            padding-left: 1.5rem;
+        }
+
+        .admin-nav ul li a:hover::before { color: var(--green); }
+
+        .admin-nav ul li a.active {
+            color: var(--green);
+            background: var(--green-glow);
+            border-left-color: var(--green);
+        }
+
+        .admin-nav ul li:nth-child(3) a { color: #4FC3F7; }
+        .admin-nav ul li:nth-child(3) a::before { color: #4FC3F7; }
+        .admin-nav ul li:nth-child(3) a:hover { color: #81D4FA; background: rgba(79,195,247,0.1); border-left-color: #4FC3F7; }
+
+        .admin-nav ul li:nth-child(4) a { color: var(--yellow); }
+        .admin-nav ul li:nth-child(4) a::before { color: var(--yellow); }
+        .admin-nav ul li:nth-child(4) a:hover { background: var(--yellow-glow); border-left-color: var(--yellow); }
+
+        /* ── Footer ── */
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--green-border);
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+        }
+
+        .sidebar-footer a {
+            display: block;
+            color: var(--danger);
+            text-decoration: none;
+            margin-top: 0.5rem;
+            font-weight: 600;
+            font-size: 12px;
+            transition: color 0.2s;
+        }
+
+        .sidebar-footer a:hover { color: #ff6b85; }
+
+        /* ══ MAIN CONTENT OFFSET ══ */
+        .admin-main {
+            padding-top: var(--topbar-h);
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* ══ TABLET ══ */
+        @media (min-width: 768px) {
+            :root { --topbar-h: 64px; }
+            .admin-menu-toggle .brand { font-size: 14px; }
+        }
+
+        /* ══ DESKTOP ══ */
+        @media (min-width: 1100px) {
+            .admin-menu-toggle { display: none; }
+            .admin-header { transform: translateX(0); }
+            .admin-overlay { display: none !important; }
+            .admin-main {
+                margin-left: var(--sidebar-w);
+                padding-top: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Topbar (mobile) -->
+<button class="admin-menu-toggle" id="adminToggle">
+    <div class="hb">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <span class="brand">Fintech Connect</span>
+</button>
+
+<!-- Overlay -->
+<div class="admin-overlay" id="adminOverlay"></div>
+
+<!-- Sidebar -->
+<header class="admin-header" id="adminSidebar">
+
+    <div class="logo-container">
+        <a href="/home">
+            <img src="/images/logo.png" alt="Fintech Connect">
+        </a>
+    </div>
+
+    <nav class="admin-nav">
+        <ul>
+            <li><a href="/admin">Dashboard</a></li>
+            <li><a href="/admin/users">User Management</a></li>
+            <li><a href="/admin/payments">Payments</a></li>
+            <li><a href="/admin/withdrawals">Withdrawals</a></li>
+            <li><a href="/admin/referrals">Referrals</a></li>
+            <li><a href="/admin/packages">Packages</a></li>
+            <li><a href="/admin/spins">Tasks</a></li>
+            <li><a href="/admin/coin">Shares</a></li>
+            <li><a href="/admin/settings">Settings</a></li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        Logged in as Admin
+        <a href="/logout">Logout</a>
+    </div>
+
+</header>
+
+<script>
+    const toggleBtn = document.getElementById('adminToggle');
+    const sidebar   = document.getElementById('adminSidebar');
+    const overlay   = document.getElementById('adminOverlay');
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+        toggleBtn.classList.add('active');
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        toggleBtn.classList.remove('active');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+
+    overlay.addEventListener('click', closeSidebar);
+
+    sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth < 1100) closeSidebar();
+        });
+    });
+
+    const currentPath = window.location.pathname;
+    sidebar.querySelectorAll('nav a').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
+        }
+    });
+</script>

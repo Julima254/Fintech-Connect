@@ -1,0 +1,444 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+
+<main class="admin-main admin-dashboard">
+
+    <!-- ══ PAGE TITLE ══ -->
+    <div class="page-header">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p class="admin-sub">Platform overview — <%= new Date().toDateString() %></p>
+        </div>
+        <div class="admin-actions">
+            <a href="/admin/deposits" class="admin-btn yellow">
+               
+                <% if (stats.pendingDepositsCount > 0) { %>
+                    <span class="badge"><%= stats.pendingDepositsCount %></span>
+                <% } %>
+            </a>
+            <a href="/admin/withdrawals" class="admin-btn green">
+               
+                <% if (stats.pendingWithdrawalsCount > 0) { %>
+                    <span class="badge"><%= stats.pendingWithdrawalsCount %></span>
+                <% } %>
+            </a>
+        </div>
+    </div>
+
+    <!-- ══ STAT CARDS ══ -->
+    <section class="stats-grid">
+
+        <div class="stat-card green">
+            <span class="stat-icon">👥</span>
+            <div>
+                <p class="stat-label">Total Users</p>
+                <h3 class="stat-value"><%= stats.totalUsers %></h3>
+                <p class="stat-sub"><%= stats.activeUsers %> active · <%= stats.inactiveUsers %> inactive</p>
+            </div>
+        </div>
+
+        <div class="stat-card yellow">
+            <span class="stat-icon">📥</span>
+            <div>
+                <p class="stat-label">Deposits Today</p>
+                <h3 class="stat-value">KES <%= stats.depositsToday.toLocaleString() %></h3>
+                <p class="stat-sub">Week: KES <%= stats.depositsWeek.toLocaleString() %></p>
+            </div>
+        </div>
+
+        <div class="stat-card green">
+            <span class="stat-icon">📆</span>
+            <div>
+                <p class="stat-label">Deposits This Month</p>
+                <h3 class="stat-value">KES <%= stats.depositsMonth.toLocaleString() %></h3>
+                <p class="stat-sub">All time payouts: KES <%= stats.totalPayouts.toLocaleString() %></p>
+            </div>
+        </div>
+
+        <div class="stat-card red">
+            <span class="stat-icon">📤</span>
+            <div>
+                <p class="stat-label">Pending Withdrawals</p>
+                <h3 class="stat-value">KES <%= stats.pendingWithdrawals.toLocaleString() %></h3>
+                <p class="stat-sub"><%= stats.pendingWithdrawalsCount %> requests pending</p>
+            </div>
+        </div>
+
+        <div class="stat-card yellow">
+            <span class="stat-icon">⏳</span>
+            <div>
+                <p class="stat-label">Pending Deposits</p>
+                <h3 class="stat-value">KES <%= stats.pendingDeposits.toLocaleString() %></h3>
+                <p class="stat-sub"><%= stats.pendingDepositsCount %> manual codes pending</p>
+            </div>
+        </div>
+
+        <div class="stat-card green">
+            <span class="stat-icon">💰</span>
+            <div>
+                <p class="stat-label">Platform Profit</p>
+                <h3 class="stat-value">KES <%= stats.platformProfit.toLocaleString() %></h3>
+                <p class="stat-sub">Deposits minus payouts</p>
+            </div>
+        </div>
+
+        <div class="stat-card blue">
+            <span class="stat-icon">🏦</span>
+            <div>
+                <p class="stat-label">Users Fund</p>
+                <h3 class="stat-value">KES <%= stats.usersFund.toLocaleString() %></h3>
+                <p class="stat-sub">Total across all wallets</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ══ CHART ══ -->
+    <section class="chart-section">
+        <div class="section-header">
+            <h2>Deposits vs Withdrawals</h2>
+            <p>Last 7 days</p>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="flowChart"></canvas>
+        </div>
+    </section>
+
+    <!-- ══ BOTTOM GRID ══ -->
+    <div class="bottom-grid">
+
+        <!-- Recent Transactions -->
+        <section class="table-section">
+            <div class="section-header">
+                <h2>Recent Transactions</h2>
+                <a href="/admin/transactions" class="view-all">View All →</a>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (!recentTransactions || recentTransactions.length === 0) { %>
+                            <tr><td colspan="6" class="empty">No transactions yet</td></tr>
+                        <% } else { %>
+                            <% recentTransactions.forEach(tx => { %>
+                                <tr>
+                                    <td><%= tx.user?.username || 'N/A' %></td>
+                                    <td>KES <%= tx.amount?.toLocaleString() %></td>
+                                    <td><span class="tag <%= tx.type %>"><%= tx.type %></span></td>
+                                    <td><%= tx.method || '—' %></td>
+                                    <td><span class="status-tag <%= tx.status %>"><%= tx.status %></span></td>
+                                    <td><%= new Date(tx.createdAt).toLocaleDateString() %></td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Recent Users -->
+        <section class="table-section">
+            <div class="section-header">
+                <h2>Recent Users</h2>
+                <a href="/admin/users" class="view-all">View All →</a>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Package</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (!recentUsers || recentUsers.length === 0) { %>
+                            <tr><td colspan="4" class="empty">No users yet</td></tr>
+                        <% } else { %>
+                            <% recentUsers.forEach(u => { %>
+                                <tr>
+                                    <td><%= u.username %></td>
+                                    <td><%= u.email %></td>
+                                    <td>
+                                        <span class="tag <%= u.package && u.package !== 'None' ? 'active' : 'inactive' %>">
+                                            <%= u.package || 'None' %>
+                                        </span>
+                                    </td>
+                                    <td><%= new Date(u.createdAt).toLocaleDateString() %></td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const chartData   = <%- JSON.stringify(chartData) %>;
+    const labels      = chartData.map(d => d.label);
+    const deposits    = chartData.map(d => d.deposits);
+    const withdrawals = chartData.map(d => d.withdrawals);
+
+    const ctx = document.getElementById('flowChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label:           'Deposits (KES)',
+                    data:            deposits,
+                    backgroundColor: 'rgba(0, 230, 118, 0.7)',
+                    borderColor:     '#00E676',
+                    borderWidth:     1,
+                    borderRadius:    6,
+                },
+                {
+                    label:           'Withdrawals (KES)',
+                    data:            withdrawals,
+                    backgroundColor: 'rgba(255, 214, 0, 0.7)',
+                    borderColor:     '#FFD600',
+                    borderWidth:     1,
+                    borderRadius:    6,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#C8D8EE', font: { size: 13 } }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#5A7A9A' },
+                    grid:  { color: 'rgba(0,230,118,0.05)' }
+                },
+                y: {
+                    ticks: {
+                        color: '#5A7A9A',
+                        callback: val => 'KES ' + val.toLocaleString()
+                    },
+                    grid: { color: 'rgba(0,230,118,0.05)' }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+   .admin-dashboard {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+/* RENAMED from .admin-header to .page-header */
+.page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    color: #fff;
+    letter-spacing: 0.05em;
+}
+
+.admin-sub {
+    font-size: 12px;
+    color: #5A7A9A;
+    margin-top: 4px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: #0B1E38;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border: 1px solid rgba(0,230,118,0.1);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card.green  { border-left: 3px solid #00E676; }
+.stat-card.yellow { border-left: 3px solid #FFD600; }
+.stat-card.red    { border-left: 3px solid #FF4D6D; }
+.stat-card.blue   { border-left: 3px solid #4FC3F7; }
+
+.stat-icon { font-size: 22px; flex-shrink: 0; }
+
+.stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #5A7A9A;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.stat-sub { font-size: 11px; color: #5A7A9A; }
+
+.chart-section {
+    background: #0B1E38;
+    border: 1px solid rgba(0,230,118,0.1);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    color: #fff;
+    letter-spacing: 0.04em;
+}
+
+.section-header p { font-size: 12px; color: #5A7A9A; }
+
+.chart-wrapper { height: 260px; position: relative; }
+
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+.table-section {
+    background: #0B1E38;
+    border: 1px solid rgba(0,230,118,0.1);
+    border-radius: 14px;
+    padding: 1.25rem;
+    overflow: hidden;
+}
+
+.view-all { font-size: 12px; color: #00E676; text-decoration: none; }
+.view-all:hover { text-decoration: underline; }
+
+.table-wrap { overflow-x: auto; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 400px;
+}
+
+thead tr { border-bottom: 1px solid rgba(0,230,118,0.1); }
+
+th {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #5A7A9A;
+    font-weight: 600;
+}
+
+td {
+    padding: 0.75rem;
+    color: #C8D8EE;
+    border-bottom: 1px solid rgba(0,230,118,0.05);
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(0,230,118,0.03); }
+
+.empty { text-align: center; color: #5A7A9A; padding: 2rem; }
+
+.tag, .status-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+
+.admin-main {
+    padding-top: 60px; /* topbar height on mobile */
+    min-height: 100vh;
+}
+
+.tag.deposit    { background: rgba(0,230,118,0.15);  color: #00E676; }
+.tag.withdrawal { background: rgba(255,214,0,0.15);  color: #FFD600; }
+.tag.active     { background: rgba(0,230,118,0.15);  color: #00E676; }
+.tag.inactive   { background: rgba(255,77,109,0.15); color: #FF4D6D; }
+
+.status-tag.completed { background: rgba(0,230,118,0.15);  color: #00E676; }
+.status-tag.pending   { background: rgba(255,214,0,0.15);  color: #FFD600; }
+.status-tag.failed    { background: rgba(255,77,109,0.15); color: #FF4D6D; }
+
+/* ── TABLET ── */
+@media (min-width: 600px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .page-header { flex-direction: row; align-items: center; justify-content: space-between; }
+    .admin-main {
+        padding-top: 64px;
+    }
+}
+
+
+
+/* ── DESKTOP ── */
+@media (min-width: 1024px) {
+    .admin-dashboard { padding: 2rem 2.5rem; }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .bottom-grid { grid-template-columns: 1fr 1fr; }
+    .stat-value { font-size: 18px; }
+    .chart-wrapper { height: 300px; }
+      .admin-main {
+        margin-left: 260px; /* matches --sidebar-w in adminHeader */
+        padding-top: 0;
+    }
+}
+</style>
+
+</body>
+</html>

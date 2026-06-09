@@ -1,0 +1,321 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+
+<main class="admin-main admin-dashboard">
+
+    <!-- ══ PAGE HEADER ══ -->
+    <div class="page-header">
+        <div>
+            <h1>Payments</h1>
+            <p class="admin-sub">Manage all deposits — approve or reject manual payments</p>
+        </div>
+    </div>
+
+    <!-- ══ FLASH MESSAGES ══ -->
+    <% if (success && success.length > 0) { %>
+        <div class="flash success"><%= success[0] %></div>
+    <% } %>
+    <% if (error && error.length > 0) { %>
+        <div class="flash error"><%= error[0] %></div>
+    <% } %>
+
+    <!-- ══ FILTER TABS ══ -->
+    <div class="filter-tabs">
+        <a href="/admin/payments?filter=all"       class="tab <%= filter === 'all'       ? 'active' : '' %>">All</a>
+        <a href="/admin/payments?filter=pending"   class="tab <%= filter === 'pending'   ? 'active' : '' %>">Pending</a>
+        <a href="/admin/payments?filter=completed" class="tab <%= filter === 'completed' ? 'active' : '' %>">Completed</a>
+        <a href="/admin/payments?filter=failed"    class="tab <%= filter === 'failed'    ? 'active' : '' %>">Failed</a>
+        <a href="/admin/payments?filter=manual"    class="tab <%= filter === 'manual'    ? 'active' : '' %>">Manual</a>
+        <a href="/admin/payments?filter=stk"       class="tab <%= filter === 'stk'       ? 'active' : '' %>">STK Push</a>
+    </div>
+
+    <!-- ══ DEPOSITS TABLE ══ -->
+    <section class="table-section">
+        <div class="section-header">
+            <h2>Deposits (<%= deposits.length %>)</h2>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Phone</th>
+                        <th>Amount</th>
+                        <th>Code</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (!deposits || deposits.length === 0) { %>
+                        <tr><td colspan="8" class="empty">No deposits found</td></tr>
+                    <% } else { %>
+                        <% deposits.forEach(tx => { %>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <span class="uname"><%= tx.user?.username || 'N/A' %></span>
+                                        <span class="uemail"><%= tx.user?.email || '' %></span>
+                                    </div>
+                                </td>
+                                <td><%= tx.user?.phone || '—' %></td>
+                                <td class="amount">KES <%= tx.amount?.toLocaleString() %></td>
+                                <td>
+                                    <span class="code"><%= tx.code || '—' %></span>
+                                </td>
+                                <td>
+                                    <span class="tag <%= tx.method %>"><%= tx.method || '—' %></span>
+                                </td>
+                                <td>
+                                    <span class="status-tag <%= tx.status %>">
+                                        <%= tx.status %>
+                                    </span>
+                                    <% if (tx.user?.package && tx.user.package !== 'None') { %>
+                                        <span class="pkg-badge active">Active</span>
+                                    <% } else { %>
+                                        <span class="pkg-badge inactive">Inactive</span>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(tx.createdAt).toLocaleDateString() %><br>
+                                    <span class="time"><%= new Date(tx.createdAt).toLocaleTimeString() %></span>
+                                </td>
+                                <td>
+                                    <% if (tx.status === 'pending' && tx.method === 'manual') { %>
+                                        <div class="action-btns">
+                                            <form action="/admin/payments/approve/<%= tx._id %>" method="POST" style="display:inline;">
+                                                <button type="submit" class="btn-approve"
+                                                    onclick="return confirm('Approve KES <%= tx.amount %> for <%= tx.user?.username %>?')">
+                                                    ✓ Approve
+                                                </button>
+                                            </form>
+                                            <form action="/admin/payments/reject/<%= tx._id %>" method="POST" style="display:inline;">
+                                                <button type="submit" class="btn-reject"
+                                                    onclick="return confirm('Reject this deposit?')">
+                                                    ✗ Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    <% } else if (tx.status === 'completed') { %>
+                                        <span class="done">✓ Done</span>
+                                    <% } else if (tx.status === 'failed') { %>
+                                        <span class="failed">✗ Rejected</span>
+                                    <% } else { %>
+                                        <span class="waiting">STK Pending</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<style>
+
+    .admin-dashboard {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-header h1 {
+        font-family: 'Orbitron', monospace;
+        font-size: 20px;
+        color: #fff;
+        letter-spacing: 0.05em;
+    }
+
+    .admin-sub { font-size: 12px; color: #5A7A9A; margin-top: 4px; }
+
+    /* ── Flash ── */
+    .flash {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.25rem;
+        font-size: 13px;
+    }
+
+    .flash.success { background: rgba(0,230,118,0.1); color: #00E676; border: 1px solid #00E676; }
+    .flash.error   { background: rgba(255,77,109,0.1); color: #FF4D6D; border: 1px solid #FF4D6D; }
+
+    /* ── Filter Tabs ── */
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+    }
+
+    .tab {
+        padding: 0.45rem 1rem;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        color: #5A7A9A;
+        background: #0B1E38;
+        border: 1px solid rgba(0,230,118,0.1);
+        transition: 0.2s;
+    }
+
+    .tab:hover { color: #00E676; border-color: #00E676; }
+    .tab.active { background: #00E676; color: #030D1A; border-color: #00E676; }
+
+    /* ── Table Section ── */
+    .table-section {
+        background: #0B1E38;
+        border: 1px solid rgba(0,230,118,0.1);
+        border-radius: 14px;
+        padding: 1.25rem;
+        overflow: hidden;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .section-header h2 {
+        font-family: 'Orbitron', monospace;
+        font-size: 14px;
+        color: #fff;
+        letter-spacing: 0.04em;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        min-width: 700px;
+    }
+
+    thead tr { border-bottom: 1px solid rgba(0,230,118,0.1); }
+
+    th {
+        text-align: left;
+        padding: 0.6rem 0.75rem;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #5A7A9A;
+        font-weight: 600;
+    }
+
+    td {
+        padding: 0.75rem;
+        color: #C8D8EE;
+        border-bottom: 1px solid rgba(0,230,118,0.05);
+        vertical-align: middle;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(0,230,118,0.03); }
+
+    .empty { text-align: center; color: #5A7A9A; padding: 2rem; }
+
+    /* ── User Cell ── */
+    .user-cell { display: flex; flex-direction: column; gap: 2px; }
+    .uname { font-weight: 600; color: #fff; }
+    .uemail { font-size: 11px; color: #5A7A9A; }
+
+    /* ── Amount ── */
+    .amount { font-family: 'Orbitron', monospace; font-size: 13px; color: #FFD600; font-weight: 700; }
+
+    /* ── Code ── */
+    .code {
+        font-family: monospace;
+        font-size: 12px;
+        background: rgba(0,230,118,0.08);
+        padding: 2px 8px;
+        border-radius: 4px;
+        color: #00E676;
+        letter-spacing: 0.05em;
+    }
+
+    /* ── Time ── */
+    .time { font-size: 11px; color: #5A7A9A; }
+
+    /* ── Tags ── */
+    .tag, .status-tag, .pkg-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .tag.manual { background: rgba(255,214,0,0.15);  color: #FFD600; }
+    .tag.stk    { background: rgba(79,195,247,0.15); color: #4FC3F7; }
+
+    .status-tag.completed { background: rgba(0,230,118,0.15);  color: #00E676; }
+    .status-tag.pending   { background: rgba(255,214,0,0.15);  color: #FFD600; }
+    .status-tag.failed    { background: rgba(255,77,109,0.15); color: #FF4D6D; }
+
+    .pkg-badge { margin-left: 4px; }
+    .pkg-badge.active   { background: rgba(0,230,118,0.1);  color: #00E676; }
+    .pkg-badge.inactive { background: rgba(255,77,109,0.1); color: #FF4D6D; }
+
+    /* ── Action Buttons ── */
+    .action-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+    .btn-approve, .btn-reject {
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .admin-main {
+    padding-top: 60px; /* topbar height on mobile */
+    min-height: 100vh;
+}
+
+    .btn-approve { background: #00E676; color: #030D1A; }
+    .btn-approve:hover { background: #00C853; }
+
+    .btn-reject { background: rgba(255,77,109,0.15); color: #FF4D6D; border: 1px solid #FF4D6D; }
+    .btn-reject:hover { background: #FF4D6D; color: #fff; }
+
+    .done    { font-size: 12px; color: #00E676; font-weight: 600; }
+    .failed  { font-size: 12px; color: #FF4D6D; font-weight: 600; }
+    .waiting { font-size: 12px; color: #FFD600; font-weight: 600; }
+
+    @media (min-width: 600px) {
+    .admin-main {
+        padding-top: 64px;
+    }
+}
+
+    @media (min-width: 1024px) {
+        .admin-dashboard { padding: 2rem 2.5rem; }
+        .admin-main {
+        margin-left: 260px; /* matches --sidebar-w in adminHeader */
+        padding-top: 0;
+    }
+    }
+</style>
+
+</body>
+</html>
