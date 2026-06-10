@@ -1,0 +1,400 @@
+<%- include('partials/header.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Packages</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #0A1628;
+      --navy-mid:  #0F2044;
+      --navy-card: #132347;
+      --green:     #00E676;
+      --green-dim: #00b85c;
+      --yellow:    #FFD700;
+      --yellow-dim:#c9a800;
+      --white:     #FFFFFF;
+      --white-60:  rgba(255,255,255,0.60);
+      --white-20:  rgba(255,255,255,0.12);
+      --radius:    14px;
+      --transition:0.28s ease;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* Header */
+    .page-header {
+      background: var(--navy-mid);
+      border-bottom: 1px solid var(--white-20);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .page-header a {
+      color: var(--green);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+    }
+    .page-header a:hover { color: var(--white); }
+    .page-header span { color: var(--white-60); font-size: 0.85rem; }
+
+    /* Flash messages */
+    .flash-wrap { max-width: 900px; margin: 24px auto 0; padding: 0 20px; }
+    .flash {
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      border-left: 4px solid;
+    }
+    .flash.success { background: rgba(0,230,118,0.12); border-color: var(--green); color: var(--green); }
+    .flash.error   { background: rgba(255,80,80,0.12);  border-color: #ff5050;      color: #ff7070;      }
+
+    /* Hero */
+    .hero { text-align: center; padding: 52px 20px 36px; }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+    .hero h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 700;
+      color: var(--white);
+    }
+    .hero h1 span { color: var(--green); }
+    .hero p {
+      margin-top: 14px;
+      color: var(--white-60);
+      font-size: 1rem;
+      max-width: 480px;
+      margin-inline: auto;
+      line-height: 1.6;
+    }
+
+    /* Balance bar */
+    .balance-bar {
+      max-width: 560px;
+      margin: 0 auto 40px;
+      padding: 0 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .bal-chip {
+      background: var(--navy-card);
+      border: 1px solid var(--white-20);
+      border-radius: 40px;
+      padding: 10px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 140px;
+    }
+    .bal-chip .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--white-60); }
+    .bal-chip .value { font-size: 1.15rem; font-weight: 700; color: var(--white); }
+    .bal-chip.deposit .value { color: var(--green); }
+    .bal-chip.wallet  .value { color: var(--yellow); }
+
+    /* Cards grid */
+    .cards-grid {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+    }
+
+    /* Package card */
+    .pkg-card {
+      background: var(--navy-card);
+      border-radius: var(--radius);
+      border: 1.5px solid var(--white-20);
+      padding: 28px 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+    .pkg-card:hover { transform: translateY(-4px); }
+
+    .pkg-card.tier-starter { --accent: #64B5F6; --accent-dim: #2196f3; }
+    .pkg-card.tier-bronze  { --accent: #FF8A65; --accent-dim: #e64a19; }
+    .pkg-card.tier-silver  { --accent: #B0BEC5; --accent-dim: #78909c; }
+    .pkg-card.tier-gold    { --accent: var(--yellow); --accent-dim: var(--yellow-dim); }
+
+    .pkg-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 28px -6px var(--accent);
+    }
+    .pkg-card.active {
+      border-color: var(--green);
+      box-shadow: 0 0 28px -6px var(--green);
+    }
+
+    /* Badges */
+    .active-badge, .popular-badge {
+      position: absolute;
+      top: -1px; right: -1px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 0 var(--radius) 0 var(--radius);
+    }
+    .active-badge  { background: var(--green);  color: var(--navy); }
+    .popular-badge { background: var(--yellow); color: var(--navy); }
+
+    /* Card content */
+    .pkg-icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .pkg-name { font-size: 1.25rem; font-weight: 700; color: var(--white); }
+    .pkg-cost { font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1; }
+    .pkg-cost sup { font-size: 0.85rem; vertical-align: super; margin-right: 2px; font-weight: 600; }
+    .pkg-currency { font-size: 0.75rem; color: var(--white-60); margin-top: 2px; }
+
+    .pkg-features { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .pkg-features li { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--white-60); }
+    .pkg-features li .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    .pkg-features li strong { color: var(--white); }
+
+    /* Buttons */
+    .btn-buy {
+      display: block; width: 100%; padding: 13px;
+      border: none; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: opacity var(--transition), transform var(--transition);
+      background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+      color: var(--navy);
+    }
+    .btn-buy:hover:not(:disabled) { opacity: 0.88; transform: scale(1.02); }
+    .btn-buy:disabled {
+      opacity: 0.4; cursor: not-allowed; transform: none;
+      background: var(--white-20); color: var(--white-60);
+    }
+    .btn-current {
+      display: block; width: 100%; padding: 13px;
+      border: 1.5px solid var(--green); border-radius: 8px;
+      font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em;
+      cursor: default; background: transparent; color: var(--green);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--navy-card);
+      border: 1.5px solid var(--white-20);
+      border-radius: 18px; padding: 32px 28px;
+      max-width: 380px; width: 100%; text-align: center;
+    }
+    .modal h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    .modal p  { color: var(--white-60); font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px; }
+    .modal-highlight { color: var(--green); font-weight: 700; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-actions button {
+      flex: 1; padding: 13px; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: opacity var(--transition); border: none;
+    }
+    .btn-cancel  { background: var(--white-20); color: var(--white); }
+    .btn-confirm { background: var(--green); color: var(--navy); }
+    .btn-cancel:hover, .btn-confirm:hover { opacity: 0.85; }
+
+    #buy-form { display: none; }
+
+    /* Note */
+    .note {
+      max-width: 680px; margin: 36px auto 0;
+      padding: 0 20px; text-align: center;
+      font-size: 0.8rem; color: var(--white-60); line-height: 1.7;
+    }
+    .note strong { color: var(--white); }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+      .pkg-card   { padding: 20px 16px 18px; }
+      .pkg-cost   { font-size: 1.6rem; }
+    }
+    @media (max-width: 400px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <a href="/home">← Dashboard</a>
+  <span>/</span>
+  <span>Packages</span>
+</div>
+
+<div class="flash-wrap">
+  <% if (success && success.length > 0) { %>
+    <% success.forEach(msg => { %>
+      <div class="flash success">✓ <%= msg %></div>
+    <% }) %>
+  <% } %>
+  <% if (error && error.length > 0) { %>
+    <% error.forEach(msg => { %>
+      <div class="flash error">✕ <%= msg %></div>
+    <% }) %>
+  <% } %>
+</div>
+
+<div class="hero">
+  <p class="hero-eyebrow">Investment Tiers</p>
+  <h1>Choose Your <span>Package</span></h1>
+  <p>Activate a package using your deposit balance. Any remaining funds transfer to your wallet.</p>
+</div>
+
+<div class="balance-bar">
+  <div class="bal-chip deposit">
+    <span class="label">Deposit Balance</span>
+    <span class="value">KES <%= currentUser.depositBalance.toFixed(2) %></span>
+  </div>
+  <div class="bal-chip wallet">
+    <span class="label">Wallet Balance</span>
+    <span class="value">KES <%= currentUser.walletBalance.toFixed(2) %></span>
+  </div>
+  <div class="bal-chip" style="border-color: var(--green); min-width:180px;">
+    <span class="label">Paying From</span>
+    <span class="value" style="font-size:0.95rem; color: var(--green);">
+      <%= (!currentUser.package || currentUser.package === 'None') ? 'Deposit Balance' : 'Wallet Balance' %>
+    </span>
+  </div>
+</div>
+
+<div class="cards-grid">
+  <%
+    const tierMeta = {
+      Starter: { icon: '🌱', tier: 'starter' },
+      Bronze:  { icon: '🥉', tier: 'bronze' },
+      Silver:  { icon: '🥈', tier: 'silver', popular: true },
+      Gold:    { icon: '👑', tier: 'gold' }
+    };
+    const isFirstTime = !currentUser.package || currentUser.package === 'None';  // ← replaces the old isActive/canAfford lines
+    const canAfford   = (cost) => isFirstTime
+      ? currentUser.depositBalance >= cost
+      : currentUser.walletBalance  >= cost;
+    const isActive  = (name) => currentUser.package === name;
+    const hasAny    = currentUser.package && currentUser.package !== 'None';
+  %>
+
+  <% Object.entries(packages).forEach(([name, pkg]) => { %>
+    <% const meta = tierMeta[name]; %>
+    <% const active = isActive(name); %>
+    <% const afford = canAfford(pkg.cost); %>
+
+    <div class="pkg-card tier-<%= meta.tier %> <%= active ? 'active' : '' %>">
+
+      <% if (active) { %>
+        <div class="active-badge">Active</div>
+      <% } else if (meta.popular && !hasAny) { %>
+        <div class="popular-badge">Popular</div>
+      <% } %>
+
+      <div class="pkg-icon"><%= meta.icon %></div>
+      <div class="pkg-name"><%= name %></div>
+
+      <div>
+        <div class="pkg-cost"><sup>KES</sup><%= pkg.cost %></div>
+        <div class="pkg-currency">one-time activation</div>
+      </div>
+
+      <ul class="pkg-features">
+        <li><span class="dot"></span><strong><%= pkg.referralPct %>%</strong>&nbsp;referral rate</li>
+        <li><span class="dot"></span>Instant activation</li>
+        <li><span class="dot"></span>Balance transfer on upgrade</li>
+      </ul>
+
+      <% if (active) { %>
+        <button class="btn-current" disabled>Current Plan</button>
+      <% } else { %>
+        <button
+          class="btn-buy"
+          <%= !afford ? 'disabled title="Insufficient deposit balance"' : '' %>
+          onclick="openModal('<%= name %>', <%= pkg.cost %>)"
+        >
+          <%= afford ? 'Activate' : 'Insufficient Funds' %>
+        </button>
+      <% } %>
+
+    </div>
+  <% }) %>
+</div>
+
+<p class="note">
+  <strong>How it works:</strong> The package cost is deducted from your deposit balance.
+  Any remaining deposit balance moves automatically into your wallet.
+  Your referral commission rate updates immediately after activation.
+</p>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>Confirm Activation</h2>
+    <p>
+      Activate the <span class="modal-highlight" id="modal-pkg-name"></span> package
+      for <span class="modal-highlight" id="modal-cost"></span>?
+      The remaining deposit balance will be moved to your wallet.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-cancel"  onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="submitBuy()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<form id="buy-form" action="/packages/buy" method="POST">
+  <input type="hidden" name="packageName" id="form-pkg-name" />
+</form>
+
+<script>
+  function openModal(name, cost) {
+    document.getElementById("modal-pkg-name").textContent = name;
+    document.getElementById("modal-cost").textContent     = "KES " + cost;
+    document.getElementById("form-pkg-name").value        = name;
+    document.getElementById("modal-overlay").classList.add("open");
+  }
+  function closeModal() {
+    document.getElementById("modal-overlay").classList.remove("open");
+  }
+  function submitBuy() {
+    document.getElementById("buy-form").submit();
+  }
+  document.getElementById("modal-overlay").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+
+</body>
+</html>
