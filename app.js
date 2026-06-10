@@ -15,6 +15,8 @@ const depositRoutes = require('./routes/deposit');
 const adminRoutes = require('./routes/admin');
 const sharesRouter = require('./routes/shares');
 const packagesRoutes = require('./routes/packages');
+const withdrawRoutes = require('./routes/withdraw');
+const adminWithdrawalsRoutes = require('./routes/adminWithdrawals');
 
 
 
@@ -77,6 +79,8 @@ app.use("/", depositRoutes);
 app.use("/", adminRoutes);
 app.use('/shares', sharesRouter);
 app.use("/", packagesRoutes);
+app.use("/", withdrawRoutes);
+app.use("/", adminWithdrawalsRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3000;

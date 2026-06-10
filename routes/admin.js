@@ -229,4 +229,79 @@ router.post("/admin/payments/reject/:id", isAdmin, async (req, res) => {
     }
 });
 
+const PACKAGES = {
+  Starter: { cost: 50,  referralPct: 10 },
+  Bronze:  { cost: 100, referralPct: 20 },
+  Silver:  { cost: 200, referralPct: 35 },
+  Gold:    { cost: 500, referralPct: 50 }
+};
+
+router.get("/admin/packages", isAdmin, async (req, res) => {
+  try {
+    const totalUsers    = await User.countDocuments();
+    const activeUsers   = await User.countDocuments({ package: { $ne: "None" } });
+    const inactiveUsers = totalUsers - activeUsers;
+
+    const packageStats = {};
+    for (const name of Object.keys(PACKAGES)) {
+      packageStats[name] = await User.countDocuments({ package: name });
+    }
+
+    const recentPackageUsers = await User.find({ package: { $nin: ["None", null] } })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select("username email package walletBalance createdAt");
+
+    res.render("admin/packages", {
+      packages: PACKAGES,
+      packageStats,
+      recentPackageUsers,
+      stats: { totalUsers, activeUsers, inactiveUsers }
+    });
+
+  } catch (err) {
+    console.error("Admin packages error:", err);
+    req.flash("error", "Failed to load packages page.");
+    res.redirect("/admin");
+  }
+});
+
+router.post("/admin/packages/update", isAdmin, async (req, res) => {
+  try {
+    const { packageName, cost, referralPct } = req.body;
+
+    if (!PACKAGES[packageName]) {
+      req.flash("error", "Invalid package name.");
+      return res.redirect("/admin/packages");
+    }
+
+    PACKAGES[packageName].cost        = Number(cost);
+    PACKAGES[packageName].referralPct = Number(referralPct);
+
+    req.flash("success", `${packageName} updated — Cost: KES ${cost}, Referral: ${referralPct}%.`);
+    res.redirect("/admin/packages");
+
+  } catch (err) {
+    console.error("Update package error:", err);
+    req.flash("error", "Failed to update package.");
+    res.redirect("/admin/packages");
+  }
+});
+
+router.get("/admin/packages/users/:packageName", isAdmin, async (req, res) => {
+  try {
+    const { packageName } = req.params;
+    const users = await User.find({ package: packageName })
+      .sort({ createdAt: -1 })
+      .select("username email walletBalance depositBalance createdAt");
+
+    res.render("admin/package-users", { users, packageName });
+
+  } catch (err) {
+    console.error("Package users error:", err);
+    req.flash("error", "Failed to load users.");
+    res.redirect("/admin/packages");
+  }
+});
+
 module.exports = router;

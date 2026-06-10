@@ -1,0 +1,818 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Withdrawals</title>
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0a1628;
+      --navy-mid:   #112240;
+      --navy-light: #1a3358;
+      --green:      #00e676;
+      --green-dim:  #00b85c;
+      --yellow:     #ffd600;
+      --white:      #ffffff;
+      --muted:      #8899aa;
+      --border:     rgba(255,255,255,0.08);
+      --red:        #ff4d4d;
+      --sidebar-w:  240px;
+      --radius:     10px;
+      --font:       'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── SIDEBAR (desktop fixed left) ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--navy-mid);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo span {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-logo small {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .sidebar nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+
+    .nav-section {
+      padding: 8px 24px 4px;
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 24px;
+      color: #aabbcc;
+      text-decoration: none;
+      font-size: 0.88rem;
+      transition: background 0.15s, color 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-link:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+
+    .nav-link.active {
+      background: rgba(0,230,118,0.08);
+      color: var(--green);
+      border-left-color: var(--green);
+    }
+
+    .nav-link .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--navy-mid);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .page-title { font-size: 1.05rem; font-weight: 600; color: var(--white); }
+    .page-subtitle { font-size: 0.8rem; color: var(--muted); }
+
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+    .badge-pending {
+      background: var(--yellow);
+      color: var(--navy);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    /* ── PAGE BODY ── */
+    .page-body { padding: 28px; flex: 1; }
+
+    /* ── FLASH MESSAGES ── */
+    .flash {
+      padding: 13px 18px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+    .flash.success { background: rgba(0,230,118,0.12); border: 1px solid var(--green-dim); color: var(--green); }
+    .flash.error   { background: rgba(255,77,77,0.1);  border: 1px solid var(--red);       color: var(--red);   }
+
+    /* ── STAT CARDS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .stat-card.c-total::before  { background: var(--white); }
+    .stat-card.c-done::before   { background: var(--green); }
+    .stat-card.c-pending::before{ background: var(--yellow); }
+    .stat-card.c-failed::before { background: var(--red); }
+
+    .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .stat-card.c-total   .stat-value { color: var(--white); }
+    .stat-card.c-done    .stat-value { color: var(--green); }
+    .stat-card.c-pending .stat-value { color: var(--yellow); }
+    .stat-card.c-failed  .stat-value { color: var(--red); }
+
+    .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-bar form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; width: 100%; }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 9px 14px;
+      color: var(--white);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--green); }
+
+    .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .tab {
+      padding: 8px 16px;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .tab:hover { border-color: var(--white); color: var(--white); }
+    .tab.active-all     { background: rgba(255,255,255,0.1);  border-color: var(--white);  color: var(--white); }
+    .tab.active-completed{ background: rgba(0,230,118,0.12); border-color: var(--green);  color: var(--green); }
+    .tab.active-pending  { background: rgba(255,214,0,0.1);  border-color: var(--yellow); color: var(--yellow);}
+    .tab.active-failed   { background: rgba(255,77,77,0.1);  border-color: var(--red);    color: var(--red);   }
+
+    .btn-filter {
+      padding: 9px 20px;
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      border-radius: 7px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-filter:hover { background: var(--green-dim); }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .table-title { font-size: 0.9rem; font-weight: 600; color: var(--white); }
+    .table-count { font-size: 0.78rem; color: var(--muted); }
+
+    .tbl-scroll { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.855rem; }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    td {
+      padding: 13px 16px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .user-cell { display: flex; flex-direction: column; }
+    .user-name { font-weight: 600; color: var(--white); }
+    .user-phone{ font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    .amount-cell { font-weight: 700; color: var(--yellow); font-size: 0.95rem; }
+
+    .status-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .pill-completed { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid var(--green-dim); }
+    .pill-pending   { background: rgba(255,214,0,0.12);  color: var(--yellow); border: 1px solid #b89a00; }
+    .pill-failed    { background: rgba(255,77,77,0.1);   color: var(--red);    border: 1px solid #aa2222; }
+
+    .code-cell { font-family: monospace; font-size: 0.8rem; color: var(--muted); }
+
+    .date-cell { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── ACTION BUTTONS ── */
+    .actions { display: flex; gap: 6px; }
+
+    .btn-approve {
+      padding: 5px 12px;
+      background: rgba(0,230,118,0.12);
+      color: var(--green);
+      border: 1px solid var(--green-dim);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-approve:hover { background: rgba(0,230,118,0.25); }
+
+    .btn-reject {
+      padding: 5px 12px;
+      background: rgba(255,77,77,0.08);
+      color: var(--red);
+      border: 1px solid #aa2222;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-reject:hover { background: rgba(255,77,77,0.2); }
+
+    .btn-done {
+      padding: 5px 12px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: default;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty p { font-size: 0.88rem; }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pagination-info { font-size: 0.78rem; color: var(--muted); }
+
+    .pagination-links { display: flex; gap: 6px; }
+
+    .page-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: transparent;
+      transition: all 0.15s;
+    }
+    .page-btn:hover  { border-color: var(--green); color: var(--green); }
+    .page-btn.active { background: var(--green); color: var(--navy); border-color: var(--green); }
+    .page-btn.disabled { opacity: 0.3; pointer-events: none; }
+
+    /* ── MODAL (approve) ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      width: 100%;
+      max-width: 420px;
+      margin: 16px;
+    }
+
+    .modal h3 { font-size: 1rem; margin-bottom: 16px; color: var(--white); }
+
+    .modal label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .modal input[type="text"] {
+      width: 100%;
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 14px;
+      color: var(--white);
+      font-size: 0.875rem;
+      outline: none;
+      margin-bottom: 20px;
+    }
+    .modal input[type="text"]:focus { border-color: var(--green); }
+
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    .btn-modal-cancel {
+      padding: 9px 18px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .btn-modal-confirm {
+      padding: 9px 18px;
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ── MOBILE OVERLAY ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 90;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay.open { display: block; }
+      .hamburger { display: block; }
+      .main { margin-left: 0; }
+      .page-body { padding: 16px; }
+
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+      thead th:nth-child(5),
+      td:nth-child(5) { display: none; } /* hide receipt on mobile */
+
+      thead th:nth-child(6),
+      td:nth-child(6) { display: none; } /* hide date on mobile */
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat-value { font-size: 1.25rem; }
+      .filter-tabs { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span>VaultJ</span>
+    <small>Admin Panel</small>
+  </div>
+  <nav>
+    <div class="nav-section">Main</div>
+    <a href="/admin" class="nav-link">
+      <span class="icon">📊</span> Dashboard
+    </a>
+    <a href="/admin/users" class="nav-link">
+      <span class="icon">👥</span> Users
+    </a>
+
+    <div class="nav-section">Finance</div>
+    <a href="/admin/withdrawals" class="nav-link active">
+      <span class="icon">💸</span> Withdrawals
+    </a>
+    <a href="/admin/deposits" class="nav-link">
+      <span class="icon">💰</span> Deposits
+    </a>
+    <a href="/admin/packages" class="nav-link">
+      <span class="icon">📦</span> Packages
+    </a>
+
+    <div class="nav-section">System</div>
+    <a href="/admin/shares" class="nav-link">
+      <span class="icon">📈</span> Shares
+    </a>
+    <a href="/admin/settings" class="nav-link">
+      <span class="icon">⚙️</span> Settings
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    Logged in as <strong><%= currentUser ? currentUser.username : 'Admin' %></strong>
+  </div>
+</aside>
+
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div>
+        <div class="page-title">Withdrawals</div>
+        <div class="page-subtitle">Manage all M-Pesa payouts</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <% if (stats.countPending > 0) { %>
+        <span class="badge-pending">⏳ <%= stats.countPending %> pending</span>
+      <% } %>
+    </div>
+  </header>
+
+  <!-- PAGE BODY -->
+  <main class="page-body">
+
+    <!-- Flash Messages -->
+    <% if (success && success.length > 0) { %>
+      <div class="flash success">✓ <%= success[0] %></div>
+    <% } %>
+    <% if (error && error.length > 0) { %>
+      <div class="flash error">✕ <%= error[0] %></div>
+    <% } %>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card c-total">
+        <div class="stat-label">Total Requested</div>
+        <div class="stat-value">KES <%= stats.total.toLocaleString() %></div>
+        <div class="stat-sub"><%= stats.countAll %> transactions</div>
+      </div>
+      <div class="stat-card c-done">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value">KES <%= stats.completed.toLocaleString() %></div>
+        <div class="stat-sub">Successfully paid out</div>
+      </div>
+      <div class="stat-card c-pending">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">KES <%= stats.pending.toLocaleString() %></div>
+        <div class="stat-sub"><%= stats.countPending %> awaiting</div>
+      </div>
+      <div class="stat-card c-failed">
+        <div class="stat-label">Failed / Refunded</div>
+        <div class="stat-value">KES <%= stats.failed.toLocaleString() %></div>
+        <div class="stat-sub">Refunded to wallets</div>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+      <form method="GET" action="/admin/withdrawals">
+        <input
+          type="text"
+          name="search"
+          class="search-input"
+          placeholder="Search by username or phone…"
+          value="<%= search %>"
+        />
+
+        <div class="filter-tabs">
+          <a href="/admin/withdrawals?status=all&search=<%= search %>"
+             class="tab <%= status === 'all' ? 'active-all' : '' %>">All</a>
+          <a href="/admin/withdrawals?status=completed&search=<%= search %>"
+             class="tab <%= status === 'completed' ? 'active-completed' : '' %>">Completed</a>
+          <a href="/admin/withdrawals?status=pending&search=<%= search %>"
+             class="tab <%= status === 'pending' ? 'active-pending' : '' %>">Pending</a>
+          <a href="/admin/withdrawals?status=failed&search=<%= search %>"
+             class="tab <%= status === 'failed' ? 'active-failed' : '' %>">Failed</a>
+        </div>
+
+        <button type="submit" class="btn-filter">Search</button>
+        <% if (search) { %>
+          <a href="/admin/withdrawals?status=<%= status %>" class="tab">✕ Clear</a>
+        <% } %>
+      </form>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">Withdrawal Records</span>
+        <span class="table-count"><%= total %> result<%= total !== 1 ? 's' : '' %></span>
+      </div>
+
+      <div class="tbl-scroll">
+        <% if (transactions.length === 0) { %>
+          <div class="empty">
+            <div class="empty-icon">📭</div>
+            <p>No withdrawals match your filters.</p>
+          </div>
+        <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+              <th>Receipt</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% transactions.forEach(txn => { %>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <span class="user-name"><%= txn.user ? txn.user.username : '—' %></span>
+                  <span class="user-phone"><%= txn.user ? txn.user.phone : '' %></span>
+                </div>
+              </td>
+              <td class="amount-cell">KES <%= txn.amount.toLocaleString() %></td>
+              <td>
+                <span class="status-pill pill-<%= txn.status %>">
+                  <%= txn.status.charAt(0).toUpperCase() + txn.status.slice(1) %>
+                </span>
+              </td>
+              <td>
+                <div class="actions">
+                  <% if (txn.status === 'pending') { %>
+                    <button
+                      class="btn-approve"
+                      onclick="openApproveModal('<%= txn._id %>')">
+                      ✓ Approve
+                    </button>
+                    <form method="POST" action="/admin/withdrawals/<%= txn._id %>/reject"
+                          onsubmit="return confirm('Reject and refund KES <%= txn.amount.toLocaleString() %>?')">
+                      <button type="submit" class="btn-reject">✕ Reject</button>
+                    </form>
+                  <% } else { %>
+                    <span class="btn-done"><%= txn.status === 'completed' ? '✓ Paid' : '✕ Failed' %></span>
+                  <% } %>
+                </div>
+              </td>
+              <td class="code-cell"><%= txn.code || '—' %></td>
+              <td class="date-cell">
+                <%= txn.createdAt ? new Date(txn.createdAt).toLocaleString('en-KE', {
+                  day:'2-digit', month:'short', year:'numeric',
+                  hour:'2-digit', minute:'2-digit'
+                }) : '—' %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+
+      <!-- PAGINATION -->
+      <% if (totalPages > 1) { %>
+      <div class="pagination">
+        <span class="pagination-info">
+          Page <%= currentPage %> of <%= totalPages %> &nbsp;·&nbsp; <%= total %> total
+        </span>
+        <div class="pagination-links">
+          <a href="/admin/withdrawals?status=<%= status %>&search=<%= search %>&page=<%= currentPage - 1 %>"
+             class="page-btn <%= currentPage <= 1 ? 'disabled' : '' %>">← Prev</a>
+
+          <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+            <a href="/admin/withdrawals?status=<%= status %>&search=<%= search %>&page=<%= i %>"
+               class="page-btn <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+          <% } %>
+
+          <a href="/admin/withdrawals?status=<%= status %>&search=<%= search %>&page=<%= currentPage + 1 %>"
+             class="page-btn <%= currentPage >= totalPages ? 'disabled' : '' %>">Next →</a>
+        </div>
+      </div>
+      <% } %>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── APPROVE MODAL ── -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal">
+    <h3>✓ Manually Approve Withdrawal</h3>
+    <form id="approveForm" method="POST" action="">
+      <label for="receiptCode">M-Pesa Receipt Code (optional)</label>
+      <input type="text" id="receiptCode" name="receiptCode" placeholder="e.g. RKG5XY12AB" />
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-cancel" onclick="closeApproveModal()">Cancel</button>
+        <button type="submit" class="btn-modal-confirm">Confirm Approval</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  /* ── SIDEBAR TOGGLE (mobile) ── */
+  const sidebar         = document.getElementById('sidebar');
+  const overlay         = document.getElementById('sidebarOverlay');
+  const hamburger       = document.getElementById('hamburger');
+
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  /* ── APPROVE MODAL ── */
+  const approveModal = document.getElementById('approveModal');
+  const approveForm  = document.getElementById('approveForm');
+
+  function openApproveModal(txnId) {
+    approveForm.action = `/admin/withdrawals/${txnId}/approve`;
+    approveModal.classList.add('open');
+  }
+
+  function closeApproveModal() {
+    approveModal.classList.remove('open');
+    approveForm.action = '';
+  }
+
+  approveModal.addEventListener('click', (e) => {
+    if (e.target === approveModal) closeApproveModal();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<%- include('../partials/adminHeader') %>
+
+<style>
+  /* ── LAYOUT ── */
+  .admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #0a1628;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  /* ── SIDEBAR (fixed desktop) ── */
+  .admin-sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: #071020;
+    position: fixed;
+    top: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 2px solid #00c851;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 18px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #1a2e4a;
+  }
+  .sidebar-logo span { color: #00c851; }
+
+  .sidebar-nav { flex: 1; padding: 16px 0; }
+  .nav-section-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #4a6080;
+    padding: 14px 20px 6px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 20px;
+    color: #8aa3c0;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+  .nav-link:hover { background: #0f1e35; color: #fff; }
+  .nav-link.active { background: #0f2240; color: #00c851; border-left-color: #00c851; }
+  .nav-link .icon { font-size: 1rem; width: 18px; text-align: center; }
+
+  /* ── MAIN CONTENT ── */
+  .admin-main {
+    margin-left: 240px;
+    flex: 1;
+    padding: 28px 32px;
+    min-height: 100vh;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+  }
+  .page-title span { color: #00c851; }
+  .page-subtitle { color: #5a80a8; font-size: 0.85rem; margin-top: 3px; }
+
+  /* ── FLASH MESSAGES ── */
+  .flash { padding: 13px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 0.88rem; font-weight: 500; }
+  .flash.success { background: #0a2e18; border: 1px solid #00c851; color: #00c851; }
+  .flash.error   { background: #2e0a0a; border: 1px solid #e03c3c; color: #e03c3c; }
+
+  /* ── STAT CARDS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: #0d1f38;
+    border: 1px solid #1a3050;
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card.green::before  { background: #00c851; }
+  .stat-card.yellow::before { background: #ffd700; }
+  .stat-card.blue::before   { background: #4a9eff; }
+  .stat-card.white::before  { background: #ffffff; }
+
+  .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: #4a6080; margin-bottom: 8px; }
+  .stat-value { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1; }
+  .stat-value.green  { color: #00c851; }
+  .stat-value.yellow { color: #ffd700; }
+  .stat-icon {
+    position: absolute;
+    top: 18px; right: 18px;
+    font-size: 1.6rem;
+    opacity: 0.15;
+  }
+
+  /* ── PACKAGES GRID ── */
+  .packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .pkg-card {
+    background: #0d1f38;
+    border: 1.5px solid #1a3050;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .pkg-card:hover { transform: translateY(-3px); border-color: #00c851; }
+
+  .pkg-header {
+    padding: 20px 22px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1a3050;
+  }
+  .pkg-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+  .pkg-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .badge-starter { background: #0a2e18; color: #00c851; border: 1px solid #00c851; }
+  .badge-bronze  { background: #2e1a0a; color: #cd7f32; border: 1px solid #cd7f32; }
+  .badge-silver  { background: #1a1e2e; color: #c0c0c0; border: 1px solid #c0c0c0; }
+  .badge-gold    { background: #2e2700; color: #ffd700; border: 1px solid #ffd700; }
+
+  .pkg-body { padding: 18px 22px; }
+
+  .pkg-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #101e30;
+  }
+  .pkg-stat-row:last-child { border-bottom: none; }
+  .pkg-stat-label { font-size: 0.8rem; color: #5a80a8; }
+  .pkg-stat-val   { font-size: 0.92rem; font-weight: 700; color: #fff; }
+  .pkg-stat-val.highlight { color: #00c851; }
+  .pkg-stat-val.gold      { color: #ffd700; }
+
+  .pkg-footer {
+    padding: 14px 22px 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-green  { background: #00c851; color: #071020; }
+  .btn-green:hover  { background: #00e85c; }
+  .btn-yellow { background: #ffd700; color: #071020; }
+  .btn-yellow:hover { background: #ffe433; }
+  .btn-outline { background: transparent; color: #5a80a8; border: 1px solid #2a4060; }
+  .btn-outline:hover { border-color: #4a9eff; color: #4a9eff; }
+  .btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+
+  /* ── EDIT MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #0d1f38;
+    border: 1.5px solid #1a3050;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #1a3050;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title { font-size: 1.1rem; font-weight: 800; color: #fff; margin: 0; }
+  .modal-close { background: none; border: none; color: #5a80a8; font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+  .modal-close:hover { color: #fff; background: #1a3050; }
+
+  .modal-body { padding: 24px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: #5a80a8; margin-bottom: 8px; font-weight: 600; }
+  .form-control {
+    width: 100%;
+    padding: 11px 14px;
+    background: #071020;
+    border: 1.5px solid #1a3050;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+  }
+  .form-control:focus { border-color: #00c851; }
+  .form-hint { font-size: 0.74rem; color: #4a6080; margin-top: 5px; }
+
+  .modal-footer {
+    padding: 16px 24px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    border-top: 1px solid #1a3050;
+  }
+
+  /* ── TABLE ── */
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1a3050;
+  }
+
+  .table-card {
+    background: #0d1f38;
+    border: 1px solid #1a3050;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: #071020;
+    padding: 13px 18px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #4a6080;
+    font-weight: 700;
+    text-align: left;
+  }
+  tbody tr { border-top: 1px solid #101e30; transition: background 0.15s; }
+  tbody tr:hover { background: #0f2240; }
+  tbody td { padding: 14px 18px; font-size: 0.875rem; color: #d0dff0; vertical-align: middle; }
+
+  .pkg-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .pill-starter { background: #0a2e18; color: #00c851; }
+  .pill-bronze  { background: #2e1a0a; color: #cd7f32; }
+  .pill-silver  { background: #1a1e2e; color: #c0c0c0; }
+  .pill-gold    { background: #2e2700; color: #ffd700; }
+  .pill-none    { background: #1a1a2e; color: #5a6080; }
+
+  /* ── MOBILE ── */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 300;
+    background: #00c851;
+    border: none;
+    border-radius: 8px;
+    width: 40px; height: 40px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .hamburger span { display: block; width: 20px; height: 2px; background: #071020; border-radius: 2px; }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 99;
+  }
+
+  @media (max-width: 900px) {
+    .admin-sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+      z-index: 150;
+    }
+    .admin-sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .admin-main { margin-left: 0; padding: 20px 16px; padding-top: 64px; }
+    .hamburger { display: flex; }
+    .packages-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+
+<button class="hamburger" id="hamburger" aria-label="Menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="admin-wrapper">
+
+  <aside class="admin-sidebar" id="sidebar">
+    <div class="sidebar-logo">Vault<span>J</span> Admin</div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/admin" class="nav-link"><span class="icon">📊</span> Dashboard</a>
+
+      <div class="nav-section-label">Finance</div>
+      <a href="/admin/payments" class="nav-link"><span class="icon">💳</span> Payments</a>
+      <a href="/admin/withdrawals" class="nav-link"><span class="icon">💸</span> Withdrawals</a>
+
+      <div class="nav-section-label">Platform</div>
+      <a href="/admin/packages" class="nav-link active"><span class="icon">📦</span> Packages</a>
+      <a href="/admin/users" class="nav-link"><span class="icon">👥</span> Users</a>
+      <a href="/admin/shares" class="nav-link"><span class="icon">📈</span> Shares</a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="/home" class="nav-link"><span class="icon">🏠</span> Back to Site</a>
+      <a href="/logout" class="nav-link"><span class="icon">🚪</span> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+
+    <% if (success && success.length > 0) { %>
+      <div class="flash success">✅ <%= success[0] %></div>
+    <% } %>
+    <% if (error && error.length > 0) { %>
+      <div class="flash error">⚠️ <%= error[0] %></div>
+    <% } %>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Package <span>Management</span></h1>
+        <p class="page-subtitle">Configure investment packages and view adoption stats</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card green">
+        <div class="stat-label">Total Package Users</div>
+        <div class="stat-value green"><%= stats.activeUsers %></div>
+        <div class="stat-icon">📦</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">No Package</div>
+        <div class="stat-value yellow"><%= stats.inactiveUsers %></div>
+        <div class="stat-icon">⏳</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value"><%= stats.totalUsers %></div>
+        <div class="stat-icon">👥</div>
+      </div>
+      <div class="stat-card white">
+        <div class="stat-label">Adoption Rate</div>
+        <div class="stat-value">
+          <%= stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0 %>%
+        </div>
+        <div class="stat-icon">📈</div>
+      </div>
+    </div>
+
+    <p class="section-title">Active Packages</p>
+
+    <div class="packages-grid">
+      <% for (const [name, pkg] of Object.entries(packages)) { %>
+      <div class="pkg-card">
+        <div class="pkg-header">
+          <div class="pkg-name"><%= name %></div>
+          <span class="pkg-badge badge-<%= name.toLowerCase() %>"><%= name %></span>
+        </div>
+        <div class="pkg-body">
+          <div class="pkg-stat-row">
+            <span class="pkg-stat-label">Cost</span>
+            <span class="pkg-stat-val highlight">KES <%= pkg.cost.toLocaleString() %></span>
+          </div>
+          <div class="pkg-stat-row">
+            <span class="pkg-stat-label">Referral Bonus</span>
+            <span class="pkg-stat-val gold"><%= pkg.referralPct %>%</span>
+          </div>
+          <div class="pkg-stat-row">
+            <span class="pkg-stat-label">Active Users</span>
+            <span class="pkg-stat-val"><%= packageStats[name] || 0 %></span>
+          </div>
+          <div class="pkg-stat-row">
+            <span class="pkg-stat-label">Revenue Generated</span>
+            <span class="pkg-stat-val highlight">
+              KES <%= ((packageStats[name] || 0) * pkg.cost).toLocaleString() %>
+            </span>
+          </div>
+        </div>
+        <div class="pkg-footer">
+          <button
+            class="btn btn-green btn-sm"
+            onclick="openEditModal('<%= name %>', <%= pkg.cost %>, <%= pkg.referralPct %>)"
+          >✏️ Edit</button>
+          <a href="/admin/packages/users/<%= name %>" class="btn btn-outline btn-sm">👥 View Users</a>
+        </div>
+      </div>
+      <% } %>
+    </div>
+
+    <p class="section-title">Recent Package Activity</p>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Package</th>
+            <th>Wallet Balance</th>
+            <th>Joined</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (recentPackageUsers && recentPackageUsers.length > 0) { %>
+            <% recentPackageUsers.forEach(user => { %>
+            <tr>
+              <td><strong style="color:#fff"><%= user.username %></strong></td>
+              <td style="color:#5a80a8"><%= user.email %></td>
+              <td>
+                <span class="pkg-pill pill-<%= (user.package || 'none').toLowerCase() %>">
+                  <%= user.package || 'None' %>
+                </span>
+              </td>
+              <td style="color:#00c851; font-weight:700">KES <%= (user.walletBalance || 0).toLocaleString() %></td>
+              <td style="color:#5a80a8"><%= new Date(user.createdAt).toLocaleDateString('en-KE') %></td>
+              <td>
+                <a href="/admin/users/<%= user._id %>" class="btn btn-outline btn-sm">View</a>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#4a6080; padding:32px">
+                No package users found.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Edit Package — <span id="modalPackageName"></span></h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form action="/admin/packages/update" method="POST">
+      <input type="hidden" name="packageName" id="modalPackageNameInput">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Cost (KES)</label>
+          <input type="number" name="cost" id="modalCost" class="form-control" min="1" required>
+          <div class="form-hint">The amount users pay to activate this package.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Referral Bonus (%)</label>
+          <input type="number" name="referralPct" id="modalReferralPct" class="form-control" min="0" max="100" required>
+          <div class="form-hint">Percentage of the referee's deposit credited to the referrer.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-green">💾 Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebarOverlay');
+  const hamburger = document.getElementById('hamburger');
+
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  function openEditModal(name, cost, referralPct) {
+    document.getElementById('modalPackageName').textContent = name;
+    document.getElementById('modalPackageNameInput').value  = name;
+    document.getElementById('modalCost').value              = cost;
+    document.getElementById('modalReferralPct').value       = referralPct;
+    document.getElementById('editModal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('editModal').classList.remove('open');
+  }
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>

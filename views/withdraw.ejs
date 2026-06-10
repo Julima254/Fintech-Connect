@@ -1,0 +1,495 @@
+<%- include('partials/header') %>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a1628;
+    font-family: 'Segoe UI', sans-serif;
+    color: #d0dff0;
+    min-height: 100vh;
+  }
+
+  .page-wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 40px 16px 60px;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    margin-bottom: 28px;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #5a80a8;
+    text-decoration: none;
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #00c851; }
+  .page-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+  }
+  .page-title span { color: #00c851; }
+  .page-sub { color: #5a80a8; font-size: 0.85rem; margin-top: 4px; }
+
+  /* ── FLASH ── */
+  .flash {
+    padding: 13px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .flash.success { background: #0a2e18; border: 1px solid #00c851; color: #00c851; }
+  .flash.error   { background: #2e0a0a; border: 1px solid #e03c3c; color: #e03c3c; }
+
+  /* ── BALANCE CARD ── */
+  .balance-card {
+    background: linear-gradient(135deg, #0d1f38 0%, #0f2a45 100%);
+    border: 1.5px solid #1a3050;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .balance-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00c851, #ffd700);
+  }
+  .balance-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #4a6080;
+    margin-bottom: 8px;
+  }
+  .balance-amount {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #00c851;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .balance-note {
+    font-size: 0.78rem;
+    color: #4a6080;
+  }
+  .balance-meta {
+    display: flex;
+    gap: 20px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid #1a3050;
+  }
+  .meta-item { flex: 1; }
+  .meta-label { font-size: 0.7rem; color: #4a6080; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .meta-val   { font-size: 0.95rem; font-weight: 700; color: #fff; }
+  .meta-val.yellow { color: #ffd700; }
+
+  /* ── WITHDRAW CARD ── */
+  .card {
+    background: #0d1f38;
+    border: 1.5px solid #1a3050;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid #1a3050;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-icon {
+    width: 36px; height: 36px;
+    background: #0a2e18;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+  .card-title { font-size: 1rem; font-weight: 700; color: #fff; }
+  .card-body  { padding: 22px; }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #5a80a8;
+    font-weight: 600;
+    margin-bottom: 9px;
+  }
+  .form-label-hint { color: #ffd700; font-size: 0.72rem; text-transform: none; letter-spacing: 0; }
+
+  .input-wrap { position: relative; }
+  .input-prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #5a80a8;
+    font-size: 0.9rem;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .form-control {
+    width: 100%;
+    padding: 13px 14px 13px 50px;
+    background: #071020;
+    border: 1.5px solid #1a3050;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-control.no-prefix { padding-left: 14px; }
+  .form-control:focus { border-color: #00c851; }
+  .form-control::placeholder { color: #2a4060; }
+  .form-hint { font-size: 0.74rem; color: #4a6080; margin-top: 6px; }
+
+  /* ── QUICK AMOUNTS ── */
+  .quick-amounts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .quick-btn {
+    padding: 9px 4px;
+    background: #071020;
+    border: 1.5px solid #1a3050;
+    border-radius: 8px;
+    color: #8aa3c0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .quick-btn:hover  { border-color: #00c851; color: #00c851; background: #0a2e18; }
+  .quick-btn.active { border-color: #00c851; color: #00c851; background: #0a2e18; }
+
+  /* ── WARNING BOX ── */
+  .warning-box {
+    background: #1a1400;
+    border: 1px solid #ffd700;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .warning-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .warning-text { font-size: 0.8rem; color: #c8a800; line-height: 1.5; }
+  .warning-text strong { color: #ffd700; }
+
+  /* ── SUBMIT BUTTON ── */
+  .btn-submit {
+    width: 100%;
+    padding: 15px;
+    background: #00c851;
+    color: #071020;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-submit:hover   { background: #00e85c; transform: translateY(-1px); }
+  .btn-submit:active  { transform: translateY(0); }
+  .btn-submit:disabled {
+    background: #1a3050;
+    color: #4a6080;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── HISTORY ── */
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #101e30;
+    gap: 12px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-left { display: flex; align-items: center; gap: 12px; }
+  .history-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .icon-pending   { background: #1a1400; }
+  .icon-completed { background: #0a2e18; }
+  .icon-failed    { background: #2e0a0a; }
+  .history-date   { font-size: 0.72rem; color: #4a6080; margin-top: 2px; }
+  .history-label  { font-size: 0.88rem; font-weight: 600; color: #d0dff0; }
+  .history-amount { font-size: 1rem; font-weight: 800; }
+  .history-right  { text-align: right; }
+
+  .status-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+  }
+  .pill-pending   { background: #1a1400; color: #ffd700; }
+  .pill-completed { background: #0a2e18; color: #00c851; }
+  .pill-failed    { background: #2e0a0a; color: #e03c3c; }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px 0;
+    color: #4a6080;
+    font-size: 0.85rem;
+  }
+
+  /* ── LOCKED STATE ── */
+  .locked-box {
+    background: #0d1f38;
+    border: 1.5px solid #2a4060;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .locked-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .locked-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .locked-desc  { font-size: 0.85rem; color: #5a80a8; line-height: 1.6; margin-bottom: 20px; }
+  .btn-package {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #ffd700;
+    color: #071020;
+    border-radius: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    font-size: 0.88rem;
+    transition: background 0.2s;
+  }
+  .btn-package:hover { background: #ffe433; }
+
+  @media (max-width: 480px) {
+    .page-wrap { padding: 24px 14px 48px; }
+    .balance-amount { font-size: 2rem; }
+    .quick-amounts { grid-template-columns: repeat(2, 1fr); }
+    .balance-meta { flex-direction: column; gap: 12px; }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Back -->
+  <a href="/home" class="back-link">← Back to Dashboard</a>
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">Withdraw <span>Funds</span></h1>
+    <p class="page-sub">Instant M-Pesa payout to your phone</p>
+  </div>
+
+  <!-- Flash -->
+  <% if (success && success.length > 0) { %>
+    <div class="flash success">✅ <%= success[0] %></div>
+  <% } %>
+  <% if (error && error.length > 0) { %>
+    <div class="flash error">⚠️ <%= error[0] %></div>
+  <% } %>
+
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="balance-label">Available to Withdraw</div>
+    <div class="balance-amount">KES <%= (user.walletBalance || 0).toLocaleString() %></div>
+    <div class="balance-note">Wallet balance</div>
+    <div class="balance-meta">
+      <div class="meta-item">
+        <div class="meta-label">Package</div>
+        <div class="meta-val yellow"><%= user.package || 'None' %></div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Min Withdrawal</div>
+        <div class="meta-val">KES <%= MIN_WITHDRAWAL %></div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Phone</div>
+        <div class="meta-val"><%= user.phone || 'Not set' %></div>
+      </div>
+    </div>
+  </div>
+
+  <% if (!user.package || user.package === 'None') { %>
+    <!-- Locked: no package -->
+    <div class="locked-box">
+      <div class="locked-icon">🔒</div>
+      <div class="locked-title">Package Required</div>
+      <div class="locked-desc">
+        You need an active investment package before you can withdraw funds.
+        Activate a package to unlock withdrawals.
+      </div>
+      <a href="/packages" class="btn-package">🚀 Get a Package</a>
+    </div>
+
+  <% } else { %>
+    <!-- Withdraw Form -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">💸</div>
+        <div class="card-title">Request Withdrawal</div>
+      </div>
+      <div class="card-body">
+
+        <div class="warning-box">
+          <div class="warning-icon">⚠️</div>
+          <div class="warning-text">
+            <strong>Before you withdraw:</strong> funds are sent directly to your M-Pesa.
+            Ensure your phone number is correct. Minimum withdrawal is
+            <strong>KES <%= MIN_WITHDRAWAL %></strong>.
+          </div>
+        </div>
+
+        <form action="/withdraw" method="POST" id="withdrawForm">
+
+          <!-- Amount -->
+          <div class="form-group">
+            <label class="form-label">
+              Amount
+              <span class="form-label-hint">Max: KES <%= (user.walletBalance || 0).toLocaleString() %></span>
+            </label>
+            <div class="quick-amounts">
+              <button type="button" class="quick-btn" onclick="setAmount(100)">100</button>
+              <button type="button" class="quick-btn" onclick="setAmount(200)">200</button>
+              <button type="button" class="quick-btn" onclick="setAmount(500)">500</button>
+              <button type="button" class="quick-btn" onclick="setAmount(<%= user.walletBalance %>)">All</button>
+            </div>
+            <div class="input-wrap">
+              <span class="input-prefix">KES</span>
+              <input
+                type="number"
+                name="amount"
+                id="amountInput"
+                class="form-control"
+                placeholder="Enter amount"
+                min="<%= MIN_WITHDRAWAL %>"
+                max="<%= user.walletBalance %>"
+                required
+              >
+            </div>
+            <div class="form-hint">Minimum: KES <%= MIN_WITHDRAWAL %></div>
+          </div>
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label class="form-label">M-Pesa Phone Number</label>
+            <input
+              type="tel"
+              name="phone"
+              class="form-control no-prefix"
+              placeholder="07XXXXXXXX or 254XXXXXXXXX"
+              value="<%= user.phone || '' %>"
+              required
+            >
+            <div class="form-hint">Payment will be sent to this number.</div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            💸 Withdraw via M-Pesa
+          </button>
+
+        </form>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Recent Withdrawals -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🕐</div>
+      <div class="card-title">Recent Withdrawals</div>
+    </div>
+    <div class="card-body" style="padding: 0 22px;">
+      <% if (recentWithdrawals && recentWithdrawals.length > 0) { %>
+        <% recentWithdrawals.forEach(txn => { %>
+        <div class="history-item">
+          <div class="history-left">
+            <div class="history-icon icon-<%= txn.status %>">
+              <% if (txn.status === 'completed') { %> ✅
+              <% } else if (txn.status === 'failed') { %> ❌
+              <% } else { %> ⏳ <% } %>
+            </div>
+            <div>
+              <div class="history-label">M-Pesa Withdrawal</div>
+              <div class="history-date">
+                <%= new Date(txn.createdAt).toLocaleDateString('en-KE', { day:'numeric', month:'short', year:'numeric' }) %>
+                <% if (txn.code) { %> · <%= txn.code %><% } %>
+              </div>
+            </div>
+          </div>
+          <div class="history-right">
+            <div class="history-amount" style="color: #e03c3c;">− KES <%= txn.amount.toLocaleString() %></div>
+            <span class="status-pill pill-<%= txn.status %>"><%= txn.status %></span>
+          </div>
+        </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">No withdrawals yet.</div>
+      <% } %>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function setAmount(val) {
+    document.getElementById('amountInput').value = val;
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  // Prevent double-submit
+  document.getElementById('withdrawForm')?.addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Processing...';
+  });
+</script>
