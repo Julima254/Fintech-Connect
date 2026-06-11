@@ -1,0 +1,254 @@
+<%- include('../partials/header') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Explore Tasks</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:  #0a1628;
+      --blue:  #0d2b55;
+      --card:  #112240;
+      --green: #00e676;
+      --yellow:#ffd600;
+      --red:   #ff5252;
+      --white: #ffffff;
+      --muted: #a0b0c8;
+      --border:rgba(255,255,255,0.08);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+    header {
+      max-width: 900px;
+      margin: 0 auto 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 800; }
+    header h1 span { color: var(--green); }
+    .back-link { color: var(--muted); font-size: 0.9rem; text-decoration: none; }
+    .back-link:hover { color: var(--white); }
+    .flash {
+      max-width: 900px;
+      margin: 0 auto 1.2rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .flash-success { background: rgba(0,230,118,0.12); border: 1px solid var(--green); color: var(--green); }
+    .flash-error   { background: rgba(255,82,82,0.12);  border: 1px solid var(--red);  color: var(--red); }
+    .grid {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.2rem;
+    }
+    .task-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .task-card.reserved-card { border-color: var(--green); }
+    .task-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .task-name { font-size: 1.05rem; font-weight: 700; line-height: 1.3; }
+    .pay-badge {
+      background: var(--green);
+      color: var(--navy);
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 0.25rem 0.7rem;
+      border-radius: 1rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .tag {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      font-size: 0.78rem;
+      padding: 0.2rem 0.55rem;
+      color: var(--muted);
+    }
+    .tag.yellow { border-color: var(--yellow); color: var(--yellow); }
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .section-text { font-size: 0.88rem; color: #c8d8ef; line-height: 1.5; }
+    .timer-box {
+      background: rgba(0,230,118,0.08);
+      border: 1px solid rgba(0,230,118,0.3);
+      border-radius: 0.6rem;
+      padding: 0.6rem 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .timer-label { font-size: 0.75rem; color: var(--green); font-weight: 600; }
+    .timer-value { font-size: 1rem; font-weight: 800; color: var(--green); font-variant-numeric: tabular-nums; }
+    .timer-value.urgent { color: var(--red); }
+    .actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
+    form { display: contents; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.65rem;
+      border-radius: 0.6rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-green  { background: var(--green);  color: var(--navy); }
+    .btn-ghost  { background: transparent; border: 1px solid var(--muted); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--white); color: var(--white); }
+    .btn-red    { background: transparent; border: 1px solid var(--red); color: var(--red); }
+    .btn-red:hover { background: rgba(255,82,82,0.1); }
+    .empty { max-width: 900px; margin: 4rem auto; text-align: center; color: var(--muted); }
+    .empty h2 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Explore <span>Tasks</span></h1>
+    <a href="/tasks" class="back-link">← Back to Tasks Hub</a>
+  </header>
+
+  <% if (success && success.length > 0) { %>
+    <div class="flash flash-success"><%= success[0] %></div>
+  <% } %>
+  <% if (error && error.length > 0) { %>
+    <div class="flash flash-error"><%= error[0] %></div>
+  <% } %>
+
+  <% if (annotated.length === 0) { %>
+    <div class="empty">
+      <h2>No tasks available right now</h2>
+      <p>Check back later — new tasks are posted regularly.</p>
+    </div>
+  <% } else { %>
+    <div class="grid">
+      <% annotated.forEach(({ task, reserved, reservedAt, timeLimitMs }) => { %>
+        <div class="task-card <%= reserved ? 'reserved-card' : '' %>"
+             data-reserved="<%= reserved %>"
+             data-reserved-at="<%= reservedAt ? reservedAt.getTime() : '' %>"
+             data-time-limit="<%= timeLimitMs %>"
+             data-task-id="<%= task._id %>">
+
+          <div class="task-card-top">
+            <div class="task-name"><%= task.taskName %></div>
+            <div class="pay-badge">KES <%= task.payPerTask.toFixed(2) %></div>
+          </div>
+
+          <div class="meta">
+            <span class="tag yellow">⏱ <%= task.timeLimit %></span>
+            <span class="tag">👥 <%= task.numWorkers - task.approvedCount %> spots left</span>
+            <% if (task.requiresProofImage) { %>
+              <span class="tag">📷 Proof required</span>
+            <% } %>
+          </div>
+
+          <div>
+            <div class="section-label">Requirements</div>
+            <div class="section-text"><%= task.minRequirements %></div>
+          </div>
+
+          <div>
+            <div class="section-label">Deliverables</div>
+            <div class="section-text"><%= task.expectedDeliverables %></div>
+          </div>
+
+          <% if (reserved) { %>
+            <div class="timer-box">
+              <span class="timer-label">⏳ Time remaining</span>
+              <span class="timer-value" id="timer-<%= task._id %>">--:--:--</span>
+            </div>
+          <% } %>
+
+          <div class="actions">
+            <% if (reserved) { %>
+              <form action="/tasks/unreserve/<%= task._id %>" method="POST">
+                <button type="submit" class="btn btn-ghost">Unreserve Task</button>
+              </form>
+            <% } else { %>
+              <% const spotsLeft = task.numWorkers - task.approvedCount; %>
+              <% if (spotsLeft > 0) { %>
+                <form action="/tasks/reserve/<%= task._id %>" method="POST">
+                  <button type="submit" class="btn btn-green">Reserve Task</button>
+                </form>
+              <% } else { %>
+                <button class="btn btn-ghost" disabled>No spots left</button>
+              <% } %>
+            <% } %>
+
+            <a href="https://wa.me/254112853545?text=<%= encodeURIComponent('Hi Admin, I want to report an unpaid task. Task ID: ' + task._id + ' | Task: ' + task.taskName) %>"
+               target="_blank" rel="noopener"
+               class="btn btn-red">
+              🚨 Report Unpaid Task
+            </a>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <script>
+    document.querySelectorAll('.task-card[data-reserved="true"]').forEach(card => {
+      const reservedAt   = parseInt(card.dataset.reservedAt, 10);
+      const timeLimitMs  = parseInt(card.dataset.timeLimit, 10);
+      const taskId       = card.dataset.taskId;
+      const timerEl      = document.getElementById('timer-' + taskId);
+
+      if (!timerEl || !reservedAt || !timeLimitMs) return;
+
+      function update() {
+        const remaining = timeLimitMs - (Date.now() - reservedAt);
+        if (remaining <= 0) {
+          timerEl.textContent = '00:00:00';
+          timerEl.classList.add('urgent');
+          return;
+        }
+        const h = Math.floor(remaining / 3600000);
+        const m = Math.floor((remaining % 3600000) / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+        timerEl.textContent =
+          String(h).padStart(2,'0') + ':' +
+          String(m).padStart(2,'0') + ':' +
+          String(s).padStart(2,'0');
+        if (remaining < 600000) timerEl.classList.add('urgent');
+      }
+
+      update();
+      setInterval(update, 1000);
+    });
+  </script>
+</body>
+</html>

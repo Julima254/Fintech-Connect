@@ -1,0 +1,157 @@
+<%- include('../partials/header') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Services</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:  #0a1628;
+      --card:  #112240;
+      --green: #00e676;
+      --yellow:#ffd600;
+      --white: #ffffff;
+      --muted: #a0b0c8;
+      --border:rgba(255,255,255,0.08);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+    .wrapper { max-width: 860px; margin: 0 auto; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-bottom: 1.8rem;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 800; }
+    header h1 span { color: var(--yellow); }
+    .header-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+    .flash {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.2rem;
+      font-size: 0.9rem;
+    }
+    .flash-success { background: rgba(0,230,118,0.12); border: 1px solid var(--green); color: var(--green); }
+    .flash-error   { background: rgba(255,82,82,0.12);  border: 1px solid #ff5252; color: #ff5252; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1.2rem;
+    }
+    .s-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      overflow: hidden;
+    }
+    .s-card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+    .s-body { padding: 1.2rem; }
+    .price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.7rem;
+    }
+    .price {
+      background: var(--yellow);
+      color: var(--navy);
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 0.25rem 0.7rem;
+      border-radius: 1rem;
+    }
+    .date { font-size: 0.75rem; color: var(--muted); }
+    .desc { font-size: 0.88rem; color: #c8d8ef; line-height: 1.55; margin-bottom: 0.9rem; }
+    .social-links { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .social-link {
+      font-size: 0.78rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .social-link:hover { color: var(--white); }
+    .empty { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+    .empty h2 { margin-bottom: 0.5rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.3rem;
+      border-radius: 0.6rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-yellow { background: var(--yellow); color: var(--navy); }
+    .btn-ghost  { background: transparent; border: 1px solid var(--muted); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--white); color: var(--white); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <h1>My <span>Services</span></h1>
+      <div class="header-actions">
+        <a href="/tasks/post-service" class="btn btn-yellow">+ Add Service</a>
+        <a href="/tasks" class="btn btn-ghost">Tasks Hub</a>
+      </div>
+    </header>
+
+    <% if (success && success.length > 0) { %>
+      <div class="flash flash-success"><%= success[0] %></div>
+    <% } %>
+    <% if (error && error.length > 0) { %>
+      <div class="flash flash-error"><%= error[0] %></div>
+    <% } %>
+
+    <% if (services.length === 0) { %>
+      <div class="empty">
+        <h2>No services posted yet</h2>
+        <p>Let clients know what you can do.</p>
+        <br/>
+        <a href="/tasks/post-service" class="btn btn-yellow">Post Your First Service</a>
+      </div>
+    <% } else { %>
+      <div class="grid">
+        <% services.forEach(s => { %>
+          <div class="s-card">
+            <% if (s.image) { %>
+              <img src="<%= s.image %>" alt="Service image"/>
+            <% } %>
+            <div class="s-body">
+              <div class="price-row">
+                <span class="price">KES <%= s.price.toFixed(2) %></span>
+                <span class="date"><%= new Date(s.createdAt).toLocaleDateString() %></span>
+              </div>
+              <p class="desc"><%= s.description %></p>
+              <div class="social-links">
+                <% if (s.socialMedia.facebook)  { %><span class="social-link">📘 <%= s.socialMedia.facebook %></span><% } %>
+                <% if (s.socialMedia.instagram) { %><span class="social-link">📸 <%= s.socialMedia.instagram %></span><% } %>
+                <% if (s.socialMedia.twitter)   { %><span class="social-link">🐦 <%= s.socialMedia.twitter %></span><% } %>
+                <% if (s.socialMedia.whatsapp)  { %>
+                  <a href="https://wa.me/<%= s.socialMedia.whatsapp.replace(/\D/g,'') %>" target="_blank" class="social-link">📱 <%= s.socialMedia.whatsapp %></a>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

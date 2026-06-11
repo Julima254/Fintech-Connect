@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+
+<div class="fl-page">
+  <div class="fl-form-wrap">
+    <a href="/hire-freelancers" class="fl-back">← Back</a>
+    <h1 class="fl-form-title">Post a New Task</h1>
+    <p class="fl-form-subtitle">
+      Wallet Balance: <span class="fl-balance">Ksh<%= user.walletBalance.toFixed(2) %></span>
+    </p>
+
+    <% if (errors && errors.length > 0) { %>
+      <% errors.forEach(function(e) { %>
+        <div class="fl-alert fl-alert--error"><%= e %></div>
+      <% }) %>
+    <% } %>
+
+    <form action="/hire-freelancers/post-task" method="POST" class="fl-form">
+
+      <div class="fl-field">
+        <label for="taskName">Task Name</label>
+        <input type="text" id="taskName" name="taskName" placeholder="e.g. Write 5 product reviews" required />
+      </div>
+
+      <div class="fl-field">
+        <label for="timeLimit">Time Allowed to Complete</label>
+        <input type="text" id="timeLimit" name="timeLimit" placeholder="e.g. 24 hours, 3 days" required />
+      </div>
+
+      <div class="fl-field">
+        <label for="minRequirements">Minimum Requirements</label>
+        <textarea id="minRequirements" name="minRequirements" rows="3"
+          placeholder="e.g. Must have a verified account, at least 100 followers..." required></textarea>
+      </div>
+
+      <div class="fl-field">
+        <label for="expectedDeliverables">What is Expected from Freelancers</label>
+        <textarea id="expectedDeliverables" name="expectedDeliverables" rows="3"
+          placeholder="e.g. Submit a screenshot of the completed review with your username visible..." required></textarea>
+      </div>
+
+      <div class="fl-field">
+        <label>Required Proof of Completion</label>
+        <div class="fl-radio-group">
+          <label class="fl-radio-label">
+            <input type="radio" name="requiresProofImage" value="yes" required />
+            <span>📷 Image Required</span>
+          </label>
+          <label class="fl-radio-label">
+            <input type="radio" name="requiresProofImage" value="no" />
+            <span>✍️ Text/Description Only</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="fl-field-row">
+        <div class="fl-field fl-field--half">
+          <label for="numWorkers">Number of Workers</label>
+          <input type="number" id="numWorkers" name="numWorkers" min="1" placeholder="e.g. 10" required />
+        </div>
+        <div class="fl-field fl-field--half">
+          <label for="payPerTask">Pay Per Task ($)</label>
+          <input type="number" id="payPerTask" name="payPerTask" min="0.01" step="0.01" placeholder="e.g. 2.50" required />
+        </div>
+      </div>
+
+      <div class="fl-cost-preview" id="costPreview" style="display:none;">
+        Total Cost: <strong id="totalCostDisplay">$0.00</strong>
+        <span id="balanceWarning" class="fl-warn" style="display:none;">⚠️ Insufficient balance</span>
+      </div>
+
+      <button type="submit" class="fl-btn fl-btn--primary fl-btn--full">Post Task & Deduct Funds</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const numInput = document.getElementById('numWorkers');
+  const payInput = document.getElementById('payPerTask');
+  const preview = document.getElementById('costPreview');
+  const display = document.getElementById('totalCostDisplay');
+  const warn = document.getElementById('balanceWarning');
+  const walletBalance = <%= user.walletBalance %>;
+
+  function updateCost() {
+    const n = parseFloat(numInput.value) || 0;
+    const p = parseFloat(payInput.value) || 0;
+    const total = n * p;
+    if (n > 0 && p > 0) {
+      preview.style.display = 'flex';
+      display.textContent = '$' + total.toFixed(2);
+      warn.style.display = total > walletBalance ? 'inline' : 'none';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  numInput.addEventListener('input', updateCost);
+  payInput.addEventListener('input', updateCost);
+</script>

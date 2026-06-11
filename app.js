@@ -17,7 +17,8 @@ const sharesRouter = require('./routes/shares');
 const packagesRoutes = require('./routes/packages');
 const withdrawRoutes = require('./routes/withdraw');
 const adminWithdrawalsRoutes = require('./routes/adminWithdrawals');
-
+const freelancersRoutes = require('./routes/freelancers');
+const tasksRoutes = require('./routes/tasks');
 
 
 const app = express();
@@ -81,6 +82,10 @@ app.use('/shares', sharesRouter);
 app.use("/", packagesRoutes);
 app.use("/", withdrawRoutes);
 app.use("/", adminWithdrawalsRoutes);
+app.use("/", freelancersRoutes);
+app.use("/", tasksRoutes);
+
+
 
 // Start server
 const PORT = process.env.PORT || 3000;

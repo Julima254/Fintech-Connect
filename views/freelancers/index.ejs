@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+
+<div class="fl-page">
+  <div class="fl-hero">
+    <h1 class="fl-title">Freelancer Hub</h1>
+    <p class="fl-subtitle">Delegate work or post tasks to our network of vetted freelancers.</p>
+  </div>
+
+  <% if (success && success.length > 0) { %>
+    <div class="fl-alert fl-alert--success"><%= success[0] %></div>
+  <% } %>
+  <% if (error && error.length > 0) { %>
+    <div class="fl-alert fl-alert--error"><%= error[0] %></div>
+  <% } %>
+
+  <% if (!user || user.package === 'None') { %>
+    <!-- Inactive user gate -->
+    <div class="fl-gate">
+      <div class="fl-gate__icon">🔒</div>
+      <h2 class="fl-gate__title">Active Package Required</h2>
+      <p class="fl-gate__text">
+        You need an active package to access the Freelancer Hub.
+        Purchase a package to start posting tasks and hiring freelancers.
+      </p>
+      <a href="/packages" class="fl-btn fl-btn--primary">Browse Packages</a>
+    </div>
+  <% } else { %>
+    <!-- Active user: choose action -->
+    <div class="fl-actions">
+      <div class="fl-card fl-card--hire">
+        <div class="fl-card__icon">🔍</div>
+        <h2 class="fl-card__title">Hire Freelancers</h2>
+        <p class="fl-card__desc">Browse available freelancers and assign them to your projects directly.</p>
+        <a href="/hire-freelancers/browse" class="fl-btn fl-btn--outline">Coming Soon</a>
+      </div>
+
+      <div class="fl-card fl-card--post">
+        <div class="fl-card__icon">📋</div>
+        <h2 class="fl-card__title">Post a Task</h2>
+        <p class="fl-card__desc">Define a task, set your budget, and let freelancers come to you.</p>
+        <a href="/hire-freelancers/post-task" class="fl-btn fl-btn--primary">Post a Task</a>
+      </div>
+    </div>
+
+    <div class="fl-mytasks-link">
+      <a href="/hire-freelancers/my-tasks" class="fl-btn fl-btn--ghost">📂 View My Posted Tasks</a>
+    </div>
+  <% } %>
+</div>

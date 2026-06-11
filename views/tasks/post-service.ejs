@@ -1,0 +1,239 @@
+<%- include('../partials/header') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Post Your Services</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:    #0a1628;
+      --card:    #112240;
+      --green:   #00e676;
+      --yellow:  #ffd600;
+      --white:   #ffffff;
+      --muted:   #a0b0c8;
+      --border:  rgba(255,255,255,0.1);
+      --input-bg:rgba(255,255,255,0.05);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+    .wrapper { max-width: 620px; margin: 0 auto; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-bottom: 1.8rem;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 800; }
+    header h1 span { color: var(--yellow); }
+    .back-link { color: var(--muted); font-size: 0.9rem; text-decoration: none; }
+    .back-link:hover { color: var(--white); }
+    .errors {
+      background: rgba(255,82,82,0.1);
+      border: 1px solid #ff5252;
+      border-radius: 0.6rem;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.2rem;
+    }
+    .errors p { color: #ff5252; font-size: 0.88rem; line-height: 1.6; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1.2rem;
+      padding: 2rem;
+    }
+    .field { margin-bottom: 1.4rem; }
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    label .required { color: var(--yellow); }
+    label .hint { font-size: 0.75rem; font-weight: 400; text-transform: none; letter-spacing: 0; color: #7a90aa; margin-left: 0.4rem; }
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.6rem;
+      padding: 0.75rem 1rem;
+      color: var(--white);
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input:focus, textarea:focus { border-color: var(--green); }
+    textarea { resize: vertical; min-height: 110px; }
+    .social-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 480px) { .social-grid { grid-template-columns: 1fr; } }
+    .social-input-wrap { position: relative; }
+    .social-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+    .social-input-wrap input { padding-left: 2.4rem; }
+    .image-toggle {
+      background: rgba(255,214,0,0.07);
+      border: 1px solid rgba(255,214,0,0.25);
+      border-radius: 0.8rem;
+      padding: 1.1rem;
+    }
+    .toggle-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+    .toggle-header span { font-size: 0.88rem; font-weight: 600; }
+    .charge-note { font-size: 0.78rem; color: var(--yellow); font-weight: 700; }
+    .toggle-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.9rem; }
+    .radio-row { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .radio-option { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.88rem; }
+    .radio-option input[type="radio"] { accent-color: var(--yellow); width: 1rem; height: 1rem; }
+    .file-input-wrap { margin-top: 0.9rem; display: none; }
+    .file-input-wrap.visible { display: block; }
+    input[type="file"] {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px dashed rgba(255,214,0,0.4);
+      border-radius: 0.6rem;
+      padding: 0.7rem 1rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .wallet-info {
+      background: rgba(0,230,118,0.08);
+      border: 1px solid rgba(0,230,118,0.2);
+      border-radius: 0.6rem;
+      padding: 0.7rem 1rem;
+      font-size: 0.85rem;
+      color: var(--green);
+      margin-bottom: 1.4rem;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--yellow);
+      color: var(--navy);
+      font-size: 1rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 0.7rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover { opacity: 0.88; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <h1>Post Your <span>Services</span></h1>
+      <a href="/tasks" class="back-link">← Back</a>
+    </header>
+
+    <% if (errors && errors.length > 0) { %>
+      <div class="errors">
+        <% errors.forEach(e => { %><p>⚠ <%= e %></p><% }); %>
+      </div>
+    <% } %>
+
+    <div class="wallet-info">
+      💰 Your balance: <strong>KES <%= user.walletBalance ? user.walletBalance.toFixed(2) : '0.00' %></strong>
+    </div>
+
+    <div class="card">
+      <form action="/tasks/post-service" method="POST" enctype="multipart/form-data">
+
+        <div class="field">
+          <label>Describe Your Services <span class="required">*</span></label>
+          <textarea name="description" placeholder="E.g. I offer professional logo design, social media graphics, and brand identity packages..." required></textarea>
+        </div>
+
+        <div class="field">
+          <label>Your Rate <span class="required">*</span><span class="hint">(KES per task/project)</span></label>
+          <input type="number" name="price" min="1" step="0.01" placeholder="e.g. 500" required/>
+        </div>
+
+        <div class="field">
+          <label>Social Media Contacts <span class="hint">(fill at least one)</span></label>
+          <div class="social-grid">
+            <div class="social-input-wrap">
+              <span class="social-icon">📘</span>
+              <input type="text" name="facebook" placeholder="Facebook username"/>
+            </div>
+            <div class="social-input-wrap">
+              <span class="social-icon">📸</span>
+              <input type="text" name="instagram" placeholder="Instagram handle"/>
+            </div>
+            <div class="social-input-wrap">
+              <span class="social-icon">🐦</span>
+              <input type="text" name="twitter" placeholder="Twitter/X handle"/>
+            </div>
+            <div class="social-input-wrap">
+              <span class="social-icon">📱</span>
+              <input type="text" name="whatsapp" placeholder="WhatsApp number"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="image-toggle">
+            <div class="toggle-header">
+              <span>Add a Profile Image?</span>
+              <span class="charge-note">KES 50 / month</span>
+            </div>
+            <p class="toggle-desc">A photo makes your listing stand out. KES 50 will be deducted from your wallet.</p>
+            <div class="radio-row">
+              <label class="radio-option">
+                <input type="radio" name="addImage" value="no" checked onchange="toggleImage(this)"/>
+                No thanks
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="addImage" value="yes" onchange="toggleImage(this)"/>
+                Yes, add image (−KES 50)
+              </label>
+            </div>
+            <div class="file-input-wrap" id="fileWrap">
+              <input type="file" name="serviceImage" accept="image/*"/>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Post My Services ✨</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function toggleImage(radio) {
+      document.getElementById('fileWrap').classList.toggle('visible', radio.value === 'yes');
+    }
+  </script>
+</body>
+</html>
