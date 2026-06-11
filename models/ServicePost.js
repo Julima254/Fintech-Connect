@@ -19,4 +19,13 @@ const servicePostSchema = new mongoose.Schema({
   active: { type: Boolean, default: true }
 }, { timestamps: true });
 
+const serviceSchema = new mongoose.Schema({
+  postedBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  title:       { type: String, required: true },
+  description: { type: String, required: true },
+  category:    { type: String, default: '' },
+  price:       { type: Number, default: 0 },
+  status:      { type: String, default: 'active' }
+}, { timestamps: true });
+
 module.exports = mongoose.model('ServicePost', servicePostSchema);

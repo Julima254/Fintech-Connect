@@ -25,15 +25,6 @@
       min-height: 100vh;
       padding: 1.5rem 1rem 3rem;
     }
-    header {
-      max-width: 900px;
-      margin: 0 auto 1.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-    }
     header h1 { font-size: 1.6rem; font-weight: 800; }
     header h1 span { color: var(--green); }
     .back-link { color: var(--muted); font-size: 0.9rem; text-decoration: none; }
@@ -64,6 +55,7 @@
       gap: 0.75rem;
     }
     .task-card.reserved-card { border-color: var(--green); }
+    .task-card.submitted-card { border-color: var(--yellow); }
     .task-card-top {
       display: flex;
       justify-content: space-between;
@@ -111,8 +103,63 @@
     .timer-label { font-size: 0.75rem; color: var(--green); font-weight: 600; }
     .timer-value { font-size: 1rem; font-weight: 800; color: var(--green); font-variant-numeric: tabular-nums; }
     .timer-value.urgent { color: var(--red); }
+
+    /* Submit form */
+    .submit-section {
+      background: rgba(255,214,0,0.06);
+      border: 1px solid rgba(255,214,0,0.25);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .submit-section .section-label { color: var(--yellow); }
+    .submit-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--white);
+      font-size: 0.85rem;
+      padding: 0.6rem 0.75rem;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+    }
+    .submit-textarea:focus { outline: none; border-color: var(--yellow); }
+    .submit-textarea::placeholder { color: var(--muted); }
+    .file-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+    .file-input {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+    .submitted-badge {
+      background: rgba(255,214,0,0.12);
+      border: 1px solid var(--yellow);
+      border-radius: 0.5rem;
+      color: var(--yellow);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.5rem 0.75rem;
+      text-align: center;
+    }
+    .payout-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .payout-note span { color: var(--green); font-weight: 700; }
+
     .actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
     form { display: contents; }
+    .submit-form { display: flex; flex-direction: column; gap: 0.6rem; }
     .btn {
       display: block;
       width: 100%;
@@ -128,6 +175,7 @@
     }
     .btn:hover { opacity: 0.85; }
     .btn-green  { background: var(--green);  color: var(--navy); }
+    .btn-yellow { background: var(--yellow); color: var(--navy); }
     .btn-ghost  { background: transparent; border: 1px solid var(--muted); color: var(--muted); }
     .btn-ghost:hover { border-color: var(--white); color: var(--white); }
     .btn-red    { background: transparent; border: 1px solid var(--red); color: var(--red); }
@@ -156,8 +204,12 @@
     </div>
   <% } else { %>
     <div class="grid">
-      <% annotated.forEach(({ task, reserved, reservedAt, timeLimitMs }) => { %>
-        <div class="task-card <%= reserved ? 'reserved-card' : '' %>"
+      <% annotated.forEach(({ task, reserved, reservedAt, timeLimitMs, submitted, submissionStatus }) => { %>
+        <%
+          const cardClass = submitted ? 'submitted-card' : reserved ? 'reserved-card' : '';
+          const payout = (task.payPerTask * 0.9).toFixed(2);
+        %>
+        <div class="task-card <%= cardClass %>"
              data-reserved="<%= reserved %>"
              data-reserved-at="<%= reservedAt ? reservedAt.getTime() : '' %>"
              data-time-limit="<%= timeLimitMs %>"
@@ -186,19 +238,59 @@
             <div class="section-text"><%= task.expectedDeliverables %></div>
           </div>
 
-          <% if (reserved) { %>
+          <% if (reserved && !submitted) { %>
             <div class="timer-box">
               <span class="timer-label">⏳ Time remaining</span>
               <span class="timer-value" id="timer-<%= task._id %>">--:--:--</span>
             </div>
           <% } %>
 
+          <!-- SUBMIT SECTION (only for reserved, not yet submitted) -->
+          <% if (reserved && !submitted) { %>
+            <div class="submit-section">
+              <div class="section-label">📋 Submit Your Work</div>
+              <form action="/tasks/submit/<%= task._id %>" method="POST" enctype="multipart/form-data" class="submit-form">
+                <textarea
+                  name="proofText"
+                  class="submit-textarea"
+                  placeholder="Paste your proof link, screenshot URL, or describe what you did..."
+                  required
+                ></textarea>
+                <% if (task.requiresProofImage) { %>
+                  <div class="file-label">📷 Proof image (required)</div>
+                  <input type="file" name="proofImage" accept="image/*" class="file-input" required />
+                <% } else { %>
+                  <div class="file-label">📎 Attach image (optional)</div>
+                  <input type="file" name="proofImage" accept="image/*" class="file-input" />
+                <% } %>
+                <div class="payout-note">You'll receive <span>KES <%= payout %></span> after approval (10% platform fee)</div>
+                <button type="submit" class="btn btn-yellow">✅ Submit Task</button>
+              </form>
+            </div>
+          <% } %>
+
+          <!-- ALREADY SUBMITTED badge -->
+          <% if (submitted) { %>
+  <% if (submissionStatus === 'approved') { %>
+    <div class="submitted-badge" style="background:rgba(0,230,118,0.12); border-color:var(--green); color:var(--green);">
+      🎉 Approved! KES <%= payout %> has been added to your wallet
+    </div>
+  <% } else if (submissionStatus === 'rejected') { %>
+    <div class="submitted-badge" style="background:rgba(255,82,82,0.12); border-color:var(--red); color:var(--red);">
+      ❌ Submission rejected — contact admin if you think this is an error
+    </div>
+  <% } else { %>
+    <div class="submitted-badge">✅ Submitted — awaiting approval</div>
+    <div class="payout-note">You'll receive <span>KES <%= payout %></span> if approved</div>
+  <% } %>
+<% } %>
+
           <div class="actions">
-            <% if (reserved) { %>
+            <% if (reserved && !submitted) { %>
               <form action="/tasks/unreserve/<%= task._id %>" method="POST">
                 <button type="submit" class="btn btn-ghost">Unreserve Task</button>
               </form>
-            <% } else { %>
+            <% } else if (!reserved && !submitted) { %>
               <% const spotsLeft = task.numWorkers - task.approvedCount; %>
               <% if (spotsLeft > 0) { %>
                 <form action="/tasks/reserve/<%= task._id %>" method="POST">

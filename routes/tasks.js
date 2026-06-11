@@ -28,21 +28,31 @@ router.get('/tasks/explore', isLoggedIn, async (req, res) => {
   try {
     const tasks = await Task.find({ status: 'open' })
       .populate('postedBy', 'username')
+       .populate('submissions.submittedBy', 'username')
       .sort({ createdAt: -1 });
 
     const userId = req.user._id.toString();
 
     const annotated = tasks.map(t => {
-      const reservation = t.reservations && t.reservations.find(
-        r => r.user.toString() === userId
-      );
-      return {
-        task: t,
-        reserved: !!reservation,
-        reservedAt: reservation ? reservation.reservedAt : null,
-        timeLimitMs: parseTimeLimitToMs(t.timeLimit)
-      };
-    });
+  const userId = req.user._id.toString();
+  const reservation = t.reservations && t.reservations.find(
+    r => r.user.toString() === userId
+  );
+  const submission = t.submissions && t.submissions.find(
+    s => {
+      const id = s.submittedBy?._id || s.submittedBy;
+      return id?.toString() === userId;
+    }
+  );
+  return {
+    task: t,
+    reserved: !!reservation,
+    reservedAt: reservation ? reservation.reservedAt : null,
+    timeLimitMs: parseTimeLimitToMs(t.timeLimit),
+    submitted: !!submission,
+    submissionStatus: submission ? submission.status : null  // add this
+  };
+});
 
     res.render('tasks/explore', { user: req.user, annotated });
   } catch (err) {
@@ -102,6 +112,60 @@ router.post('/tasks/unreserve/:taskId', isLoggedIn, async (req, res) => {
   } catch (err) {
     console.error(err);
     req.flash('error', 'Could not unreserve task.');
+    res.redirect('/tasks/explore');
+  }
+});
+
+// POST /tasks/submit/:taskId
+router.post('/tasks/submit/:taskId', isLoggedIn, upload.single('proofImage'), async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+    if (!task || task.status !== 'open') {
+      req.flash('error', 'Task not available.');
+      return res.redirect('/tasks/explore');
+    }
+
+    const userId = req.user._id.toString();
+
+    // Must have reserved the task
+    const reservation = (task.reservations || []).find(r => r.user.toString() === userId);
+    if (!reservation) {
+      req.flash('error', 'You have not reserved this task.');
+      return res.redirect('/tasks/explore');
+    }
+
+    // Check not already submitted
+    const alreadySubmitted = (task.submissions || []).find(
+      s => s.submittedBy.toString() === userId
+    );
+    if (alreadySubmitted) {
+      req.flash('error', 'You have already submitted this task.');
+      return res.redirect('/tasks/explore');
+    }
+
+    const { proofText } = req.body;
+    if (!proofText || proofText.trim().length < 5) {
+      req.flash('error', 'Please provide proof details.');
+      return res.redirect('/tasks/explore');
+    }
+
+    const submission = {
+      submittedBy: req.user._id,
+      proofText: proofText.trim(),
+      proofImage: req.file ? '/uploads/proofs/' + req.file.filename : null,
+      status: 'pending',
+      submittedAt: new Date()
+    };
+
+    if (!task.submissions) task.submissions = [];
+    task.submissions.push(submission);
+    await task.save();
+
+    req.flash('success', 'Submission sent! Waiting for approval.');
+    res.redirect('/tasks/explore');
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Could not submit task.');
     res.redirect('/tasks/explore');
   }
 });

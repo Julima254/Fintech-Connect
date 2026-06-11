@@ -67,6 +67,9 @@ const userSchema = new mongoose.Schema({
         default: 0
     },
 
+whatsappNumber: { type: String, 
+                   default: '' },
+
     sharesBalance: {
         type:    Number,
         default: 0

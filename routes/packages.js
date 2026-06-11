@@ -37,21 +37,29 @@ router.post("/packages/buy", isLoggedIn, async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
-
     const isFirstTime = !user.package || user.package === "None";
 
     if (isFirstTime) {
-      // ── First-time purchase: deduct from depositBalance, remainder → wallet ──
       if (user.depositBalance < pkg.cost) {
         req.flash("error", `Insufficient deposit balance. You need KES ${pkg.cost} but have KES ${user.depositBalance}.`);
         return res.redirect("/packages");
       }
-      const remainder     = user.depositBalance - pkg.cost;
-      user.walletBalance += remainder;
-      user.depositBalance = 0;
+      const remainder = user.depositBalance - pkg.cost;
+      user.walletBalance  += remainder;
+      user.depositBalance  = 0;
+
+      // Credit referrer on first-time purchase only
+      if (user.referrer) {
+        const referrer = await User.findById(user.referrer);
+        if (referrer) {
+          const bonus = pkg.cost * (pkg.referralPct / 100);
+          referrer.walletBalance    += bonus;
+          referrer.referralEarnings += bonus;
+          await referrer.save();
+        }
+      }
 
     } else {
-      //Upgrade/change: deduct from walletBalance
       if (user.walletBalance < pkg.cost) {
         req.flash("error", `Insufficient wallet balance. You need KES ${pkg.cost} but have KES ${user.walletBalance}.`);
         return res.redirect("/packages");
@@ -71,5 +79,4 @@ router.post("/packages/buy", isLoggedIn, async (req, res) => {
     res.redirect("/packages");
   }
 });
-
 module.exports = router;

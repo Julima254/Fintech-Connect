@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const Task = require('../models/Task');
 const User = require('../models/User');
-
+const Service = require('../models/ServicePost');
 // Multer config for proof images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/uploads/proofs'),
@@ -94,7 +94,9 @@ router.get('/hire-freelancers/my-tasks', isLoggedIn, async (req, res) => {
 // POST /hire-freelancers/approve/:taskId/:submissionId — approve a submission
 router.post('/hire-freelancers/approve/:taskId/:submissionId', isLoggedIn, async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.taskId, postedBy: req.user._id });
+    const task = await Task.findOne({ _id: req.params.taskId, postedBy: req.user._id })
+      .populate('submissions.submittedBy');
+
     if (!task) {
       req.flash('error', 'Task not found.');
       return res.redirect('/hire-freelancers/my-tasks');
@@ -106,19 +108,35 @@ router.post('/hire-freelancers/approve/:taskId/:submissionId', isLoggedIn, async
       return res.redirect('/hire-freelancers/my-tasks');
     }
 
-    // Pay the freelancer
-    const freelancer = await User.findById(submission.submittedBy);
-    if (freelancer) {
-      freelancer.walletBalance += task.payPerTask;
-      freelancer.tasksBalance += task.payPerTask;
-      await freelancer.save();
+    // Get the freelancer ID safely whether populated or not
+    const freelancerId = submission.submittedBy?._id || submission.submittedBy;
+
+    const PLATFORM_FEE_PERCENT = 0.10;
+    const gross = task.payPerTask;
+    const platformFee = parseFloat((gross * PLATFORM_FEE_PERCENT).toFixed(2));
+    const freelancerPayout = parseFloat((gross - platformFee).toFixed(2));
+
+    const freelancer = await User.findById(freelancerId);
+    if (!freelancer) {
+      req.flash('error', 'Could not find the freelancer account.');
+      return res.redirect('/hire-freelancers/my-tasks');
     }
+
+    freelancer.walletBalance += freelancerPayout;
+    freelancer.tasksBalance  += freelancerPayout;
+    await freelancer.save();
 
     submission.status = 'approved';
     task.approvedCount = (task.approvedCount || 0) + 1;
+
+    // Close task if all spots filled
+    if (task.approvedCount >= task.numWorkers) {
+      task.status = 'closed';
+    }
+
     await task.save();
 
-    req.flash('success', `Submission approved! $${task.payPerTask.toFixed(2)} paid to ${freelancer?.username || 'freelancer'}.`);
+    req.flash('success', `Approved! KES ${freelancerPayout.toFixed(2)} paid to ${freelancer.username} (KES ${platformFee.toFixed(2)} platform fee).`);
     res.redirect('/hire-freelancers/my-tasks');
   } catch (err) {
     console.error(err);
@@ -151,6 +169,41 @@ router.post('/hire-freelancers/reject/:taskId/:submissionId', isLoggedIn, async 
     console.error(err);
     req.flash('error', 'Rejection failed.');
     res.redirect('/hire-freelancers/my-tasks');
+  }
+});
+
+
+
+router.get('/hire-freelancers/browse', isLoggedIn, async (req, res) => {
+  try {
+    const { category, search } = req.query;
+    const filter = { status: { $ne: 'inactive' } };
+
+    if (category && category !== 'all') filter.category = category;
+    if (search && search.trim()) {
+      filter.$or = [
+        { title:       { $regex: search.trim(), $options: 'i' } },
+        { description: { $regex: search.trim(), $options: 'i' } }
+      ];
+    }
+
+    const services = await Service.find(filter)
+      .populate('postedBy', 'username')
+      .sort({ createdAt: -1 });
+
+    const allCategories = await Service.distinct('category');
+
+    res.render('freelancers/browse', {
+      user: req.user,
+      services,
+      allCategories,
+      currentCategory: category || 'all',
+      searchQuery: search || ''
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Could not load services.');
+    res.redirect('/hire-freelancers');
   }
 });
 
