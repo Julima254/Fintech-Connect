@@ -1,0 +1,528 @@
+ <%- include('partials/header.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Team</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --dark-blue:   #0a1628;
+            --mid-blue:    #112240;
+            --card-blue:   #1a2f50;
+            --bright-green:#00e676;
+            --yellow:      #ffd600;
+            --white:       #ffffff;
+            --muted:       #8892a4;
+            --border:      rgba(0,230,118,0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--dark-blue);
+            color: var(--white);
+            min-height: 100vh;
+        }
+
+        /* ── NAV ── */
+        .top-nav {
+            background: var(--mid-blue);
+            border-bottom: 2px solid var(--bright-green);
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-brand {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--bright-green);
+        }
+        .nav-back {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav-back:hover { background: rgba(0,230,118,0.1); }
+
+        /* ── HERO ── */
+        .hero {
+            background: linear-gradient(135deg, var(--mid-blue) 0%, var(--dark-blue) 100%);
+            padding: 2.5rem 1.5rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .hero-label {
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--bright-green);
+            margin-bottom: 0.5rem;
+        }
+        .hero-title {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 900;
+            color: var(--white);
+            line-height: 1.1;
+        }
+        .hero-title span { color: var(--bright-green); }
+        .hero-sub {
+            margin-top: 0.5rem;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        /* ── STATS STRIP ── */
+        .stats-strip {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            flex: 1 1 140px;
+            background: var(--card-blue);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .stat-card .val {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--bright-green);
+            line-height: 1;
+        }
+        .stat-card .lbl {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ── FLASH ── */
+        .flash-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .alert-success { background: rgba(0,230,118,0.12); border: 1px solid var(--bright-green); color: var(--bright-green); }
+        .alert-error   { background: rgba(255,70,70,0.12); border: 1px solid #ff4646; color: #ff4646; }
+
+        /* ── MAIN CONTENT ── */
+        .content { max-width: 900px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+
+        /* ── INVITE CODE CARD ── */
+        .invite-card {
+            background: var(--card-blue);
+            border: 1px solid var(--yellow);
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .invite-left .invite-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--yellow);
+            margin-bottom: 4px;
+        }
+        .invite-code {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--white);
+        }
+        .copy-btn {
+            background: var(--yellow);
+            color: var(--dark-blue);
+            border: none;
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+        .copy-btn:hover { opacity: 0.85; }
+
+        /* ── SECTION HEADING ── */
+        .section-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        .section-head h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+        .badge-count {
+            background: var(--bright-green);
+            color: var(--dark-blue);
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            text-align: center;
+            padding: 4rem 1rem;
+            border: 1px dashed var(--border);
+            border-radius: 14px;
+        }
+        .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .empty h3 { color: var(--white); margin-bottom: 0.4rem; }
+        .empty p { color: var(--muted); font-size: 0.9rem; }
+
+        /* ── MEMBER CARDS (mobile-first) ── */
+        .members-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .member-card {
+            background: var(--card-blue);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .member-card:hover {
+            border-color: var(--bright-green);
+            transform: translateY(-2px);
+        }
+        .member-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+        .avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bright-green), #00bcd4);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.1rem;
+            color: var(--dark-blue);
+            flex-shrink: 0;
+        }
+        .member-info { flex: 1; min-width: 0; }
+        .member-name {
+            font-weight: 700;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .member-email {
+            font-size: 0.8rem;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pkg-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .pkg-none     { background: rgba(136,146,164,0.2); color: var(--muted); }
+        .pkg-basic    { background: rgba(0,230,118,0.15); color: var(--bright-green); border: 1px solid var(--bright-green); }
+        .pkg-standard { background: rgba(255,214,0,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+        .pkg-premium  { background: rgba(255,140,0,0.15); color: #ff9500; border: 1px solid #ff9500; }
+        .pkg-vip      { background: rgba(200,100,255,0.15); color: #c864ff; border: 1px solid #c864ff; }
+
+        .member-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+        }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-lbl {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+        .meta-val {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+        .meta-val.green { color: var(--bright-green); }
+        .meta-val.yellow { color: var(--yellow); }
+
+        /* ── TABLE (desktop) ── */
+        @media (min-width: 700px) {
+            .members-grid { display: none; }
+            .members-table-wrap {
+                overflow-x: auto;
+                border-radius: 14px;
+                border: 1px solid var(--border);
+            }
+            .members-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9rem;
+            }
+            .members-table th {
+                background: var(--mid-blue);
+                color: var(--muted);
+                text-transform: uppercase;
+                font-size: 0.72rem;
+                letter-spacing: 1.5px;
+                padding: 0.9rem 1.1rem;
+                text-align: left;
+                white-space: nowrap;
+            }
+            .members-table td {
+                padding: 0.9rem 1.1rem;
+                border-top: 1px solid var(--border);
+                vertical-align: middle;
+            }
+            .members-table tr:hover td { background: rgba(255,255,255,0.03); }
+            .members-table .td-user { display: flex; align-items: center; gap: 10px; }
+            .members-table .av-sm {
+                width: 34px; height: 34px; border-radius: 50%;
+                background: linear-gradient(135deg, var(--bright-green), #00bcd4);
+                display: flex; align-items: center; justify-content: center;
+                font-weight: 700; font-size: 0.9rem; color: var(--dark-blue); flex-shrink: 0;
+            }
+            .members-table .u-name { font-weight: 600; }
+            .members-table .u-email { font-size: 0.78rem; color: var(--muted); }
+        }
+        @media (max-width: 699px) {
+            .members-table-wrap { display: none; }
+        }
+
+        /* ── COPIED TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(60px);
+            background: var(--bright-green);
+            color: var(--dark-blue);
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.3s;
+            z-index: 999;
+            pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+
+<!-- HERO -->
+<div class="hero">
+    <p class="hero-label">Referral Network</p>
+    <h1 class="hero-title">My <span>Team</span></h1>
+    <p class="hero-sub">Everyone you've brought on board</p>
+</div>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+    <div class="stat-card">
+        <div class="val"><%= referrals.length %></div>
+        <div class="lbl">Total Members</div>
+    </div>
+    <div class="stat-card">
+        <div class="val">
+            <%= referrals.filter(r => r.package && r.package !== 'None').length %>
+        </div>
+        <div class="lbl">Active Packages</div>
+    </div>
+    <div class="stat-card">
+        <div class="val">KES <%= currentUser.referralEarnings ? currentUser.referralEarnings.toLocaleString() : '0' %></div>
+        <div class="lbl">Your Earnings</div>
+    </div>
+</div>
+
+<!-- FLASH -->
+<div class="flash-wrap">
+    <% if (success && success.length) { %>
+        <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+    <% if (error && error.length) { %>
+        <div class="alert alert-error"><%= error[0] %></div>
+    <% } %>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+    <!-- INVITE CODE -->
+    <% if (currentUser.invitationCode) { %>
+    <div class="invite-card">
+        <div class="invite-left">
+            <div class="invite-title">Your Invite Code</div>
+            <div class="invite-code" id="inviteCode"><%= currentUser.invitationCode %></div>
+        </div>
+        <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+    </div>
+    <% } %>
+
+    <!-- SECTION HEAD -->
+    <div class="section-head">
+        <h2>Team Members</h2>
+        <span class="badge-count"><%= referrals.length %></span>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <% if (referrals.length === 0) { %>
+    <div class="empty">
+        <div class="empty-icon">👥</div>
+        <h3>No team members yet</h3>
+        <p>Share your invite code and start building your network.</p>
+    </div>
+
+    <% } else { %>
+
+    <!-- MOBILE CARDS -->
+    <div class="members-grid">
+        <% referrals.forEach(function(member) { %>
+        <div class="member-card">
+            <div class="member-top">
+                <div class="avatar"><%= member.username.charAt(0).toUpperCase() %></div>
+                <div class="member-info">
+                    <div class="member-name"><%= member.username %></div>
+                    <div class="member-email"><%= member.email %></div>
+                </div>
+                <%
+                    var pkg = (member.package || 'None').toLowerCase();
+                    var pkgClass = 'pkg-none';
+                    if (pkg === 'basic') pkgClass = 'pkg-basic';
+                    else if (pkg === 'standard') pkgClass = 'pkg-standard';
+                    else if (pkg === 'premium') pkgClass = 'pkg-premium';
+                    else if (pkg === 'vip') pkgClass = 'pkg-vip';
+                %>
+                <span class="pkg-badge <%= pkgClass %>"><%= member.package || 'None' %></span>
+            </div>
+            <div class="member-meta">
+                <div class="meta-item">
+                    <span class="meta-lbl">Phone</span>
+                    <span class="meta-val"><%= member.phone || '—' %></span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-lbl">Country</span>
+                    <span class="meta-val"><%= member.country || '—' %></span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-lbl">Wallet</span>
+                    <span class="meta-val green">KES <%= (member.walletBalance || 0).toLocaleString() %></span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-lbl">Joined</span>
+                    <span class="meta-val yellow"><%= new Date(member.createdAt).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+                </div>
+            </div>
+        </div>
+        <% }); %>
+    </div>
+
+    <!-- DESKTOP TABLE -->
+    <div class="members-table-wrap">
+        <table class="members-table">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th>Phone</th>
+                    <th>Country</th>
+                    <th>Package</th>
+                    <th>Wallet (KES)</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% referrals.forEach(function(member) { %>
+                <%
+                    var pkg2 = (member.package || 'None').toLowerCase();
+                    var pkgClass2 = 'pkg-none';
+                    if (pkg2 === 'basic') pkgClass2 = 'pkg-basic';
+                    else if (pkg2 === 'standard') pkgClass2 = 'pkg-standard';
+                    else if (pkg2 === 'premium') pkgClass2 = 'pkg-premium';
+                    else if (pkg2 === 'vip') pkgClass2 = 'pkg-vip';
+                %>
+                <tr>
+                    <td>
+                        <div class="td-user">
+                            <div class="av-sm"><%= member.username.charAt(0).toUpperCase() %></div>
+                            <div>
+                                <div class="u-name"><%= member.username %></div>
+                                <div class="u-email"><%= member.email %></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><%= member.phone || '—' %></td>
+                    <td><%= member.country || '—' %></td>
+                    <td><span class="pkg-badge <%= pkgClass2 %>"><%= member.package || 'None' %></span></td>
+                    <td style="color:var(--bright-green); font-weight:600;">
+                        <%= (member.walletBalance || 0).toLocaleString() %>
+                    </td>
+                    <td style="color:var(--yellow);">
+                        <%= new Date(member.createdAt).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) %>
+                    </td>
+                </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <% } %>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Code copied!</div>
+
+<script>
+    function copyCode() {
+        const code = document.getElementById('inviteCode').textContent.trim();
+        navigator.clipboard.writeText(code).then(() => {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        });
+    }
+</script>
+
+</body>
+</html>

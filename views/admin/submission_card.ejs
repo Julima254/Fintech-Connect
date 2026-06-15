@@ -1,0 +1,50 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+<div class="sub-card">
+  <div class="sub-header">
+    <div>
+      <div class="sub-user">
+        <%= sub.submittedBy ? sub.submittedBy.username : 'Unknown' %>
+        <% if (sub.submittedBy && sub.submittedBy.email) { %>
+          <span style="color:var(--muted);font-weight:400;font-size:0.78rem">
+            · <%= sub.submittedBy.email %>
+          </span>
+        <% } %>
+      </div>
+      <div class="sub-meta">
+        Submitted <%= new Date(sub.submittedAt).toLocaleString('en-KE',
+          { day:'numeric', month:'short', year:'numeric',
+            hour:'2-digit', minute:'2-digit' }) %>
+      </div>
+    </div>
+    <span class="badge badge-<%= sub.status %>"><%= sub.status.toUpperCase() %></span>
+  </div>
+
+  <% if (sub.proofText) { %>
+    <div class="sub-proof"><%= sub.proofText %></div>
+  <% } %>
+
+  <% if (sub.proofImage) { %>
+    <a href="<%= sub.proofImage %>" target="_blank" rel="noopener">
+      <img class="sub-image" src="<%= sub.proofImage %>" alt="Proof image"/>
+    </a>
+  <% } %>
+
+  <% if (sub.status === 'pending') { %>
+    <div class="sub-actions">
+      <form method="POST"
+            action="/admin/tasks/<%= task._id %>/submissions/<%= sub._id %>/approve">
+        <button class="btn btn-green" type="submit"
+                onclick="return confirm('Approve and pay KES <%= task.payPerTask %>?')">
+          ✓ Approve & Pay
+        </button>
+      </form>
+      <form method="POST"
+            action="/admin/tasks/<%= task._id %>/submissions/<%= sub._id %>/reject">
+        <button class="btn btn-red" type="submit"
+                onclick="return confirm('Reject this submission?')">
+          ✕ Reject
+        </button>
+      </form>
+    </div>
+  <% } %>
+</div>

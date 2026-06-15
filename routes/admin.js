@@ -2,6 +2,7 @@ const express     = require("express");
 const router      = express.Router();
 const User        = require("../models/User");
 const Transaction = require("../models/Transaction");
+const Task = require("../models/Task");
 
 /* ── ADMIN GUARD ── */
 function isAdmin(req, res, next) {
@@ -302,6 +303,434 @@ router.get("/admin/packages/users/:packageName", isAdmin, async (req, res) => {
     req.flash("error", "Failed to load users.");
     res.redirect("/admin/packages");
   }
+});
+
+
+
+/* ── ADMIN TASKS PAGE ── */
+router.get("/admin/tasks", isAdmin, async (req, res) => {
+    try {
+        const filter = req.query.filter || "all";
+        const search = req.query.search || "";
+
+        let query = {};
+        if (filter === "open")   query.status = "open";
+        if (filter === "closed") query.status = "closed";
+        if (search) {
+            query.taskName = { $regex: search, $options: "i" };
+        }
+
+        const tasks = await Task.find(query)
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .populate("postedBy", "username email");
+
+        // Summary stats
+        const totalTasks    = await Task.countDocuments();
+        const openTasks     = await Task.countDocuments({ status: "open" });
+        const closedTasks   = await Task.countDocuments({ status: "closed" });
+        const pendingSubs   = await Task.aggregate([
+            { $unwind: "$submissions" },
+            { $match: { "submissions.status": "pending" } },
+            { $count: "total" }
+        ]);
+        const approvedSubs  = await Task.aggregate([
+            { $unwind: "$submissions" },
+            { $match: { "submissions.status": "approved" } },
+            { $count: "total" }
+        ]);
+
+        res.render("admin/tasks", {
+            tasks,
+            filter,
+            search,
+            stats: {
+                totalTasks,
+                openTasks,
+                closedTasks,
+                pendingSubmissions:  pendingSubs[0]?.total  || 0,
+                approvedSubmissions: approvedSubs[0]?.total || 0
+            }
+        });
+
+    } catch (err) {
+        console.error("Admin tasks error:", err);
+        req.flash("error", "Failed to load tasks.");
+        res.redirect("/admin");
+    }
+});
+
+/* ── ADMIN: VIEW SINGLE TASK SUBMISSIONS ── */
+router.get("/admin/tasks/:taskId", isAdmin, async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.taskId)
+            .populate("postedBy", "username email")
+            .populate("submissions.submittedBy", "username email")
+            .populate("reservations.user", "username email");
+
+        if (!task) {
+            req.flash("error", "Task not found.");
+            return res.redirect("/admin/tasks");
+        }
+
+        res.render("admin/task-detail", { task });
+
+    } catch (err) {
+        console.error("Task detail error:", err);
+        req.flash("error", "Failed to load task.");
+        res.redirect("/admin/tasks");
+    }
+});
+
+/* ── APPROVE SUBMISSION ── */
+router.post("/admin/tasks/:taskId/submissions/:subId/approve", isAdmin, async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.taskId)
+            .populate("submissions.submittedBy");
+
+        if (!task) {
+            req.flash("error", "Task not found.");
+            return res.redirect("/admin/tasks");
+        }
+
+        const sub = task.submissions.id(req.params.subId);
+        if (!sub || sub.status !== "pending") {
+            req.flash("error", "Submission not found or already processed.");
+            return res.redirect(`/admin/tasks/${req.params.taskId}`);
+        }
+
+        sub.status = "approved";
+        task.approvedCount = (task.approvedCount || 0) + 1;
+
+        // Pay worker from escrow
+        const worker = await User.findById(sub.submittedBy._id || sub.submittedBy);
+        if (worker) {
+            worker.walletBalance += task.payPerTask;
+            await worker.save();
+
+            // Deduct from task escrow
+            task.escrowAmount = Math.max(0, (task.escrowAmount || 0) - task.payPerTask);
+        }
+
+        // Auto-close if all workers filled
+        if (task.approvedCount >= task.numWorkers) {
+            task.status = "closed";
+        }
+
+        await task.save();
+
+        req.flash("success", `Submission approved. KES ${task.payPerTask} paid to worker.`);
+        res.redirect(`/admin/tasks/${req.params.taskId}`);
+
+    } catch (err) {
+        console.error("Approve submission error:", err);
+        req.flash("error", "Failed to approve submission.");
+        res.redirect(`/admin/tasks/${req.params.taskId}`);
+    }
+});
+
+/* ── REJECT SUBMISSION ── */
+router.post("/admin/tasks/:taskId/submissions/:subId/reject", isAdmin, async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.taskId);
+
+        if (!task) {
+            req.flash("error", "Task not found.");
+            return res.redirect("/admin/tasks");
+        }
+
+        const sub = task.submissions.id(req.params.subId);
+        if (!sub || sub.status !== "pending") {
+            req.flash("error", "Submission not found or already processed.");
+            return res.redirect(`/admin/tasks/${req.params.taskId}`);
+        }
+
+        sub.status = "rejected";
+        await task.save();
+
+        req.flash("success", "Submission rejected.");
+        res.redirect(`/admin/tasks/${req.params.taskId}`);
+
+    } catch (err) {
+        console.error("Reject submission error:", err);
+        req.flash("error", "Failed to reject submission.");
+        res.redirect(`/admin/tasks/${req.params.taskId}`);
+    }
+});
+
+/* ── CLOSE / REOPEN TASK ── */
+router.post("/admin/tasks/:taskId/toggle-status", isAdmin, async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.taskId);
+        if (!task) {
+            req.flash("error", "Task not found.");
+            return res.redirect("/admin/tasks");
+        }
+
+        task.status = task.status === "open" ? "closed" : "open";
+        await task.save();
+
+        req.flash("success", `Task marked as ${task.status}.`);
+        res.redirect(`/admin/tasks/${req.params.taskId}`);
+
+    } catch (err) {
+        console.error("Toggle task status error:", err);
+        req.flash("error", "Failed to update task status.");
+        res.redirect("/admin/tasks");
+    }
+});
+
+/* ── ADMIN USERS PAGE ── */
+router.get("/admin/users", isAdmin, async (req, res) => {
+    try {
+        const filter = req.query.filter || "all";
+        const search = req.query.search || "";
+        const page   = parseInt(req.query.page) || 1;
+        const limit  = 20;
+        const skip   = (page - 1) * limit;
+
+        let query = {};
+        if (filter === "active")   query.package = { $ne: "None" };
+        if (filter === "inactive") query.package = "None";
+        if (filter === "admin")    query.isAdmin = true;
+        if (filter === "starter")  query.package = "Starter";
+        if (filter === "bronze")   query.package = "Bronze";
+        if (filter === "silver")   query.package = "Silver";
+        if (filter === "gold")     query.package = "Gold";
+
+        if (search) {
+            query.$or = [
+                { username: { $regex: search, $options: "i" } },
+                { email:    { $regex: search, $options: "i" } },
+                { phone:    { $regex: search, $options: "i" } }
+            ];
+        }
+
+        const totalCount = await User.countDocuments(query);
+        const users      = await User.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .select("username email phone country package walletBalance depositBalance referralEarnings tasksBalance isAdmin createdAt");
+
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Summary stats
+        const totalUsers    = await User.countDocuments();
+        const activeUsers   = await User.countDocuments({ package: { $ne: "None" } });
+        const inactiveUsers = totalUsers - activeUsers;
+        const adminUsers    = await User.countDocuments({ isAdmin: true });
+
+        const balanceTotals = await User.aggregate([
+            { $group: {
+                _id: null,
+                wallet:   { $sum: "$walletBalance" },
+                deposit:  { $sum: "$depositBalance" },
+                referral: { $sum: "$referralEarnings" },
+                tasks:    { $sum: "$tasksBalance" }
+            }}
+        ]);
+
+        res.render("admin/users", {
+            users,
+            filter,
+            search,
+            page,
+            totalPages,
+            totalCount,
+            stats: {
+                totalUsers,
+                activeUsers,
+                inactiveUsers,
+                adminUsers,
+                totalWallet:   balanceTotals[0]?.wallet   || 0,
+                totalDeposit:  balanceTotals[0]?.deposit  || 0,
+                totalReferral: balanceTotals[0]?.referral || 0,
+                totalTasks:    balanceTotals[0]?.tasks    || 0
+            }
+        });
+
+    } catch (err) {
+        console.error("Admin users error:", err);
+        req.flash("error", "Failed to load users.");
+        res.redirect("/admin");
+    }
+});
+
+/* ── VIEW SINGLE USER ── */
+router.get("/admin/users/:userId", isAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId)
+            .populate("referrer", "username email");
+
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/users");
+        }
+
+        // Referrals this user made
+        const referrals = await User.find({ referrer: user._id })
+            .select("username email package createdAt")
+            .sort({ createdAt: -1 });
+
+        // Recent transactions
+        const transactions = await Transaction.find({ user: user._id })
+            .sort({ createdAt: -1 })
+            .limit(15);
+
+        res.render("admin/user-detail", { user, referrals, transactions });
+
+    } catch (err) {
+        console.error("User detail error:", err);
+        req.flash("error", "Failed to load user.");
+        res.redirect("/admin/users");
+    }
+});
+
+/* ── EDIT USER BALANCES / FIELDS ── */
+router.post("/admin/users/:userId/edit", isAdmin, async (req, res) => {
+    try {
+        const { walletBalance, depositBalance, referralEarnings, tasksBalance, package: pkg, isAdmin: adminFlag, phone, email } = req.body;
+
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/users");
+        }
+
+        if (email)            user.email            = email.trim();
+        if (phone)            user.phone            = phone.trim();
+        if (pkg !== undefined) user.package          = pkg;
+        if (walletBalance   !== undefined) user.walletBalance   = Number(walletBalance);
+        if (depositBalance  !== undefined) user.depositBalance  = Number(depositBalance);
+        if (referralEarnings !== undefined) user.referralEarnings = Number(referralEarnings);
+        if (tasksBalance    !== undefined) user.tasksBalance    = Number(tasksBalance);
+
+        // Toggle admin — prevent self-demotion
+        if (adminFlag !== undefined) {
+            user.isAdmin = adminFlag === "true";
+        }
+
+        await user.save();
+
+        req.flash("success", `User ${user.username} updated successfully.`);
+        res.redirect(`/admin/users/${req.params.userId}`);
+
+    } catch (err) {
+        console.error("Edit user error:", err);
+        req.flash("error", "Failed to update user.");
+        res.redirect(`/admin/users/${req.params.userId}`);
+    }
+});
+
+/* ── CREDIT / DEBIT WALLET ── */
+router.post("/admin/users/:userId/adjust-balance", isAdmin, async (req, res) => {
+    try {
+        const { balanceType, action, amount, note } = req.body;
+        const amt = Number(amount);
+
+        if (!amt || amt <= 0) {
+            req.flash("error", "Enter a valid amount.");
+            return res.redirect(`/admin/users/${req.params.userId}`);
+        }
+
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/users");
+        }
+
+        const field = balanceType; // walletBalance | depositBalance | referralEarnings | tasksBalance
+        if (!["walletBalance", "depositBalance", "referralEarnings", "tasksBalance"].includes(field)) {
+            req.flash("error", "Invalid balance type.");
+            return res.redirect(`/admin/users/${req.params.userId}`);
+        }
+
+        if (action === "credit") {
+            user[field] += amt;
+        } else if (action === "debit") {
+            if (user[field] < amt) {
+                req.flash("error", "Insufficient balance to debit.");
+                return res.redirect(`/admin/users/${req.params.userId}`);
+            }
+            user[field] -= amt;
+        }
+
+        await user.save();
+
+        // Log as a transaction for audit trail
+        await Transaction.create({
+            user:        user._id,
+            type:        action === "credit" ? "deposit" : "withdrawal",
+            amount:      amt,
+            status:      "completed",
+            method:      "manual",
+            description: `Admin ${action} on ${field}${note ? ": " + note : ""}`
+        });
+
+        req.flash("success", `KES ${amt} ${action}ed on ${field.replace("Balance", " balance")} for ${user.username}.`);
+        res.redirect(`/admin/users/${req.params.userId}`);
+
+    } catch (err) {
+        console.error("Adjust balance error:", err);
+        req.flash("error", "Failed to adjust balance.");
+        res.redirect(`/admin/users/${req.params.userId}`);
+    }
+});
+
+/* ── DELETE USER ── */
+router.post("/admin/users/:userId/delete", isAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/users");
+        }
+
+        if (user.isAdmin) {
+            req.flash("error", "Cannot delete an admin account.");
+            return res.redirect(`/admin/users/${req.params.userId}`);
+        }
+
+        await Transaction.deleteMany({ user: user._id });
+        await User.findByIdAndDelete(req.params.userId);
+
+        req.flash("success", `User ${user.username} and their transactions have been deleted.`);
+        res.redirect("/admin/users");
+
+    } catch (err) {
+        console.error("Delete user error:", err);
+        req.flash("error", "Failed to delete user.");
+        res.redirect("/admin/users");
+    }
+});
+
+/* ── TOGGLE ADMIN FLAG ── */
+router.post("/admin/users/:userId/toggle-admin", isAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/users");
+        }
+
+        // Prevent removing own admin rights
+        if (user._id.toString() === req.user._id.toString()) {
+            req.flash("error", "You cannot change your own admin status.");
+            return res.redirect(`/admin/users/${req.params.userId}`);
+        }
+
+        user.isAdmin = !user.isAdmin;
+        await user.save();
+
+        req.flash("success", `${user.username} is now ${user.isAdmin ? "an admin" : "a regular user"}.`);
+        res.redirect(`/admin/users/${req.params.userId}`);
+
+    } catch (err) {
+        console.error("Toggle admin error:", err);
+        req.flash("error", "Failed to update admin status.");
+        res.redirect(`/admin/users/${req.params.userId}`);
+    }
 });
 
 module.exports = router;

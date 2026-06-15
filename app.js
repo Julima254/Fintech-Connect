@@ -19,6 +19,8 @@ const withdrawRoutes = require('./routes/withdraw');
 const adminWithdrawalsRoutes = require('./routes/adminWithdrawals');
 const freelancersRoutes = require('./routes/freelancers');
 const tasksRoutes = require('./routes/tasks');
+const transactionsRoutes = require('./routes/transactions');
+const teamRoutes = require('./routes/team');
 
 
 const app = express();
@@ -84,8 +86,8 @@ app.use("/", withdrawRoutes);
 app.use("/", adminWithdrawalsRoutes);
 app.use("/", freelancersRoutes);
 app.use("/", tasksRoutes);
-
-
+app.use("/", transactionsRoutes);
+app.use("/", teamRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3000;

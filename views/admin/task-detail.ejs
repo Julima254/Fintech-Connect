@@ -1,0 +1,550 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Detail — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0a1628;
+      --navy2:  #112040;
+      --green:  #00e676;
+      --green2: #00c853;
+      --yellow: #ffd600;
+      --white:  #ffffff;
+      --muted:  #8a9bbf;
+      --border: rgba(255,255,255,0.08);
+      --card:   #0f1e38;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      padding-left: 240px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--navy2);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .back-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .back-link:hover { color: var(--white); }
+    .topbar h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    .topbar h1 span { color: var(--green); }
+
+    .flash {
+      margin: 20px 32px 0;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .flash.success { background: rgba(0,230,118,0.12); border-left: 3px solid var(--green); color: var(--green); }
+    .flash.error   { background: rgba(255,80,80,0.12);  border-left: 3px solid #ff5050;    color: #ff5050; }
+
+    .content { padding: 28px 32px; }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+    }
+    .info-card.full { grid-column: 1 / -1; }
+    .info-card h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.855rem;
+      gap: 12px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: var(--muted); flex-shrink: 0; }
+    .info-row .value { color: var(--white); font-weight: 500; text-align: right; }
+    .kes { color: var(--yellow); font-weight: 700; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .badge-open     { background: rgba(0,230,118,0.15); color: var(--green); }
+    .badge-closed   { background: rgba(255,80,80,0.15);  color: #ff5050; }
+    .badge-pending  { background: rgba(255,214,0,0.15);  color: var(--yellow); }
+    .badge-approved { background: rgba(0,230,118,0.15);  color: var(--green); }
+    .badge-rejected { background: rgba(255,80,80,0.15);  color: #ff5050; }
+
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .progress-bar-bg {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--green2), var(--green));
+    }
+
+    .status-action {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .btn {
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-green  { background: var(--green);  color: var(--navy); }
+    .btn-yellow { background: var(--yellow); color: var(--navy); }
+    .btn-red    { background: rgba(255,80,80,0.15); color: #ff5050;
+                  border: 1px solid rgba(255,80,80,0.3); }
+    .btn-ghost  { background: rgba(255,255,255,0.05); color: var(--white);
+                  border: 1px solid var(--border); }
+
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .sub-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+    }
+    .sub-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sub-user {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .sub-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .sub-proof {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: #c8d6f0;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .sub-image {
+      max-width: 280px;
+      max-height: 200px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+      display: block;
+    }
+    .sub-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .res-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .res-pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .res-pill span { color: var(--white); font-weight: 500; }
+
+    @media (max-width: 768px) {
+      body { padding-left: 0; }
+      .content { padding: 16px; }
+      .topbar  { padding: 14px 16px; }
+      .info-grid { grid-template-columns: 1fr; }
+      .info-card.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a class="back-link" href="/admin/tasks">← Back</a>
+    <h1><span><%= task.taskName %></span></h1>
+    <span class="badge badge-<%= task.status %>" style="margin-left:auto">
+      <%= task.status.toUpperCase() %>
+    </span>
+  </div>
+
+  <% if (typeof messages !== 'undefined') { %>
+    <% if (messages.success && messages.success.length) { %>
+      <div class="flash success"><%= messages.success[0] %></div>
+    <% } %>
+    <% if (messages.error && messages.error.length) { %>
+      <div class="flash error"><%= messages.error[0] %></div>
+    <% } %>
+  <% } %>
+
+  <div class="content">
+
+    <!-- STATUS TOGGLE -->
+    <div class="status-action">
+      <form method="POST" action="/admin/tasks/<%= task._id %>/toggle-status">
+        <% if (task.status === 'open') { %>
+          <button class="btn btn-red" type="submit"
+                  onclick="return confirm('Close this task?')">
+            Close Task
+          </button>
+        <% } else { %>
+          <button class="btn btn-green" type="submit"
+                  onclick="return confirm('Reopen this task?')">
+            Reopen Task
+          </button>
+        <% } %>
+      </form>
+    </div>
+
+    <!-- INFO GRID -->
+    <div class="info-grid">
+
+      <div class="info-card">
+        <h2>Task Info</h2>
+        <div class="info-row">
+          <span class="label">Posted by</span>
+          <span class="value">
+            <%= task.postedBy ? task.postedBy.username : 'Unknown' %>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">Time limit</span>
+          <span class="value"><%= task.timeLimit %></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Workers needed</span>
+          <span class="value"><%= task.numWorkers %></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Pay / task</span>
+          <span class="value kes">KES <%= task.payPerTask.toLocaleString() %></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Total cost</span>
+          <span class="value kes">KES <%= task.totalCost.toLocaleString() %></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Escrow left</span>
+          <span class="value kes">KES <%= (task.escrowAmount || 0).toLocaleString() %></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Proof image required</span>
+          <span class="value"><%= task.requiresProofImage ? 'Yes' : 'No' %></span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h2>Progress</h2>
+        <%
+          const pct = task.numWorkers > 0
+            ? Math.min(100, Math.round(((task.approvedCount || 0) / task.numWorkers) * 100))
+            : 0;
+        %>
+        <div class="info-row">
+          <span class="label">Approved</span>
+          <span class="value"><%= task.approvedCount || 0 %> / <%= task.numWorkers %></span>
+        </div>
+        <div class="progress-wrap" style="margin:12px 0">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width:<%= pct %>%"></div>
+          </div>
+          <span style="color:var(--green);font-weight:700;font-size:0.85rem"><%= pct %>%</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Total submissions</span>
+          <span class="value"><%= task.submissions.length %></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Pending review</span>
+          <span class="value" style="color:var(--yellow)">
+            <%= task.submissions.filter(s => s.status === 'pending').length %>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">Rejected</span>
+          <span class="value" style="color:#ff5050">
+            <%= task.submissions.filter(s => s.status === 'rejected').length %>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">Reservations</span>
+          <span class="value"><%= task.reservations.length %></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Created</span>
+          <span class="value" style="color:var(--muted)">
+            <%= new Date(task.createdAt).toLocaleDateString('en-KE',
+                  { day:'numeric', month:'short', year:'numeric' }) %>
+          </span>
+        </div>
+      </div>
+
+      <div class="info-card full">
+        <h2>Requirements &amp; Deliverables</h2>
+        <div class="info-row">
+          <span class="label" style="min-width:160px">Min Requirements</span>
+          <span class="value" style="text-align:left"><%= task.minRequirements %></span>
+        </div>
+        <div class="info-row">
+          <span class="label" style="min-width:160px">Expected Deliverables</span>
+          <span class="value" style="text-align:left"><%= task.expectedDeliverables %></span>
+        </div>
+      </div>
+
+    </div><!-- /info-grid -->
+
+    <!-- RESERVATIONS -->
+    <% if (task.reservations && task.reservations.length) { %>
+      <div class="section-title">Reserved by (<%= task.reservations.length %>)</div>
+      <div class="res-list">
+        <% task.reservations.forEach(function(r) { %>
+          <div class="res-pill">
+            <span><%= r.user ? r.user.username : 'Unknown' %></span>
+            &nbsp;&bull;&nbsp;
+            <%= new Date(r.reservedAt).toLocaleTimeString('en-KE',
+                  { hour:'2-digit', minute:'2-digit' }) %>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+
+    <!-- SUBMISSIONS -->
+    <div class="section-title">
+      Submissions (<%= task.submissions.length %>)
+    </div>
+
+    <% if (task.submissions.length === 0) { %>
+      <div class="empty-state">No submissions yet.</div>
+    <% } else { %>
+
+      <%
+        var pendingSubs  = task.submissions.filter(function(s){ return s.status === 'pending'; });
+        var approvedSubs = task.submissions.filter(function(s){ return s.status === 'approved'; });
+        var rejectedSubs = task.submissions.filter(function(s){ return s.status === 'rejected'; });
+      %>
+
+      <!-- PENDING -->
+      <% if (pendingSubs.length) { %>
+        <div style="margin-bottom:8px;font-size:0.78rem;color:var(--yellow);font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+          ⏳ Awaiting Review (<%= pendingSubs.length %>)
+        </div>
+        <% pendingSubs.forEach(function(sub) { %>
+          <div class="sub-card">
+            <div class="sub-header">
+              <div>
+                <div class="sub-user">
+                  <%= sub.submittedBy ? sub.submittedBy.username : 'Unknown' %>
+                  <% if (sub.submittedBy && sub.submittedBy.email) { %>
+                    <span style="color:var(--muted);font-weight:400;font-size:0.78rem">
+                      · <%= sub.submittedBy.email %>
+                    </span>
+                  <% } %>
+                </div>
+                <div class="sub-meta">
+                  Submitted <%= new Date(sub.submittedAt).toLocaleString('en-KE',
+                    { day:'numeric', month:'short', year:'numeric',
+                      hour:'2-digit', minute:'2-digit' }) %>
+                </div>
+              </div>
+              <span class="badge badge-pending">PENDING</span>
+            </div>
+            <% if (sub.proofText) { %>
+              <div class="sub-proof"><%= sub.proofText %></div>
+            <% } %>
+            <% if (sub.proofImage) { %>
+              <a href="<%= sub.proofImage %>" target="_blank" rel="noopener">
+                <img class="sub-image" src="<%= sub.proofImage %>" alt="Proof image"/>
+              </a>
+            <% } %>
+            <div class="sub-actions">
+              <form method="POST"
+                    action="/admin/tasks/<%= task._id %>/submissions/<%= sub._id %>/approve">
+                <button class="btn btn-green" type="submit"
+                        onclick="return confirm('Approve and pay KES <%= task.payPerTask %>?')">
+                  ✓ Approve &amp; Pay
+                </button>
+              </form>
+              <form method="POST"
+                    action="/admin/tasks/<%= task._id %>/submissions/<%= sub._id %>/reject">
+                <button class="btn btn-red" type="submit"
+                        onclick="return confirm('Reject this submission?')">
+                  ✕ Reject
+                </button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+
+      <!-- APPROVED -->
+      <% if (approvedSubs.length) { %>
+        <div style="margin:20px 0 8px;font-size:0.78rem;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+          ✓ Approved (<%= approvedSubs.length %>)
+        </div>
+        <% approvedSubs.forEach(function(sub) { %>
+          <div class="sub-card">
+            <div class="sub-header">
+              <div>
+                <div class="sub-user">
+                  <%= sub.submittedBy ? sub.submittedBy.username : 'Unknown' %>
+                  <% if (sub.submittedBy && sub.submittedBy.email) { %>
+                    <span style="color:var(--muted);font-weight:400;font-size:0.78rem">
+                      · <%= sub.submittedBy.email %>
+                    </span>
+                  <% } %>
+                </div>
+                <div class="sub-meta">
+                  Submitted <%= new Date(sub.submittedAt).toLocaleString('en-KE',
+                    { day:'numeric', month:'short', year:'numeric',
+                      hour:'2-digit', minute:'2-digit' }) %>
+                </div>
+              </div>
+              <span class="badge badge-approved">APPROVED</span>
+            </div>
+            <% if (sub.proofText) { %>
+              <div class="sub-proof"><%= sub.proofText %></div>
+            <% } %>
+            <% if (sub.proofImage) { %>
+              <a href="<%= sub.proofImage %>" target="_blank" rel="noopener">
+                <img class="sub-image" src="<%= sub.proofImage %>" alt="Proof image"/>
+              </a>
+            <% } %>
+          </div>
+        <% }); %>
+      <% } %>
+
+      <!-- REJECTED -->
+      <% if (rejectedSubs.length) { %>
+        <div style="margin:20px 0 8px;font-size:0.78rem;color:#ff5050;font-weight:600;text-transform:uppercase;letter-spacing:.06em">
+          ✕ Rejected (<%= rejectedSubs.length %>)
+        </div>
+        <% rejectedSubs.forEach(function(sub) { %>
+          <div class="sub-card">
+            <div class="sub-header">
+              <div>
+                <div class="sub-user">
+                  <%= sub.submittedBy ? sub.submittedBy.username : 'Unknown' %>
+                  <% if (sub.submittedBy && sub.submittedBy.email) { %>
+                    <span style="color:var(--muted);font-weight:400;font-size:0.78rem">
+                      · <%= sub.submittedBy.email %>
+                    </span>
+                  <% } %>
+                </div>
+                <div class="sub-meta">
+                  Submitted <%= new Date(sub.submittedAt).toLocaleString('en-KE',
+                    { day:'numeric', month:'short', year:'numeric',
+                      hour:'2-digit', minute:'2-digit' }) %>
+                </div>
+              </div>
+              <span class="badge badge-rejected">REJECTED</span>
+            </div>
+            <% if (sub.proofText) { %>
+              <div class="sub-proof"><%= sub.proofText %></div>
+            <% } %>
+            <% if (sub.proofImage) { %>
+              <a href="<%= sub.proofImage %>" target="_blank" rel="noopener">
+                <img class="sub-image" src="<%= sub.proofImage %>" alt="Proof image"/>
+              </a>
+            <% } %>
+          </div>
+        <% }); %>
+      <% } %>
+
+    <% } %>
+
+  </div><!-- /content -->
+</body>
+</html>

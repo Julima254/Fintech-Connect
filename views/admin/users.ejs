@@ -1,0 +1,165 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+
+<div class="admin-layout">
+
+  <main class="admin-main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">User Management</h1>
+        <p class="page-sub">Total: <strong><%= totalCount %></strong> matching users</p>
+      </div>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    <% if (success && success.length) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+    <% if (error && error.length) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">👥</div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.totalUsers %></span>
+          <span class="stat-label">Total Users</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.activeUsers %></span>
+          <span class="stat-label">Active (on package)</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow">⏸️</div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.inactiveUsers %></span>
+          <span class="stat-label">Inactive</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">🔑</div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.adminUsers %></span>
+          <span class="stat-label">Admins</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">💰</div>
+        <div class="stat-info">
+          <span class="stat-value">KES <%= stats.totalWallet.toLocaleString() %></span>
+          <span class="stat-label">Total Wallet Bal.</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">🏦</div>
+        <div class="stat-info">
+          <span class="stat-value">KES <%= stats.totalDeposit.toLocaleString() %></span>
+          <span class="stat-label">Total Deposit Bal.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH + FILTER BAR -->
+    <div class="filter-bar">
+      <form method="GET" action="/admin/users" class="search-form">
+        <input
+          type="text"
+          name="search"
+          value="<%= search %>"
+          placeholder="Search username, email or phone…"
+          class="search-input"
+        />
+        <input type="hidden" name="filter" value="<%= filter %>" />
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+
+      <div class="filter-tabs">
+  <a href="/admin/users?filter=all&search=<%= search %>"      class="filter-tab <%= filter === 'all'      ? 'active' : '' %>">All</a>
+  <a href="/admin/users?filter=active&search=<%= search %>"   class="filter-tab <%= filter === 'active'   ? 'active' : '' %>">Active</a>
+  <a href="/admin/users?filter=inactive&search=<%= search %>" class="filter-tab <%= filter === 'inactive' ? 'active' : '' %>">Inactive</a>
+  <a href="/admin/users?filter=admin&search=<%= search %>"    class="filter-tab <%= filter === 'admin'    ? 'active' : '' %>">Admins</a>
+  <a href="/admin/users?filter=starter&search=<%= search %>"  class="filter-tab <%= filter === 'starter'  ? 'active' : '' %>">Starter</a>
+  <a href="/admin/users?filter=bronze&search=<%= search %>"   class="filter-tab <%= filter === 'bronze'   ? 'active' : '' %>">Bronze</a>
+  <a href="/admin/users?filter=silver&search=<%= search %>"   class="filter-tab <%= filter === 'silver'   ? 'active' : '' %>">Silver</a>
+  <a href="/admin/users?filter=gold&search=<%= search %>"     class="filter-tab <%= filter === 'gold'     ? 'active' : '' %>">Gold</a>
+</div>
+    </div>
+
+    <!-- USERS TABLE -->
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Package</th>
+            <th>Wallet</th>
+            <th>Deposit Bal.</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (users.length === 0) { %>
+            <tr>
+              <td colspan="9" class="empty-row">No users found.</td>
+            </tr>
+          <% } %>
+          <% users.forEach((u, i) => { %>
+            <tr>
+              <td class="muted"><%= ((page - 1) * 20) + i + 1 %></td>
+              <td>
+                <div class="user-cell">
+                  <span class="avatar"><%= u.username.charAt(0).toUpperCase() %></span>
+                  <div>
+                    <span class="username"><%= u.username %></span>
+                    <% if (u.isAdmin) { %><span class="badge badge-admin">Admin</span><% } %>
+                  </div>
+                </div>
+              </td>
+              <td class="muted"><%= u.email %></td>
+              <td class="muted"><%= u.phone %></td>
+              <td>
+                <span class="badge badge-<%= u.package === 'None' ? 'none' : 'pkg' %>">
+                  <%= u.package %>
+                </span>
+              </td>
+              <td class="text-green">KES <%= u.walletBalance.toLocaleString() %></td>
+              <td class="text-yellow">KES <%= u.depositBalance.toLocaleString() %></td>
+              <td class="muted"><%= new Date(u.createdAt).toLocaleDateString('en-KE') %></td>
+              <td>
+                <a href="/admin/users/<%= u._id %>" class="btn btn-sm btn-view">View</a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION -->
+    <% if (totalPages > 1) { %>
+    <div class="pagination">
+      <% if (page > 1) { %>
+        <a href="/admin/users?filter=<%= filter %>&search=<%= search %>&page=<%= page - 1 %>" class="page-btn">← Prev</a>
+      <% } %>
+      <% for (let p = 1; p <= totalPages; p++) { %>
+        <a href="/admin/users?filter=<%= filter %>&search=<%= search %>&page=<%= p %>"
+           class="page-btn <%= p === page ? 'active' : '' %>"><%= p %></a>
+      <% } %>
+      <% if (page < totalPages) { %>
+        <a href="/admin/users?filter=<%= filter %>&search=<%= search %>&page=<%= page + 1 %>" class="page-btn">Next →</a>
+      <% } %>
+    </div>
+    <% } %>
+
+  </main>
+</div>
