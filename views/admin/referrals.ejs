@@ -1,0 +1,351 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Referrals</title>
+    <style>
+        :root {
+            --darkblue: #0a1a3c;
+            --brightgreen: #00e676;
+            --white: #ffffff;
+            --yellow: #ffd600;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background: var(--darkblue);
+            color: var(--white);
+            min-height: 100vh;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar - sticky on desktop */
+        .sidebar {
+            width: 220px;
+            background: #061230;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 20px;
+            border-right: 2px solid var(--brightgreen);
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 {
+            color: var(--brightgreen);
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+        }
+
+        .sidebar a {
+            display: block;
+            color: var(--white);
+            text-decoration: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--brightgreen);
+            color: var(--darkblue);
+            font-weight: bold;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px 30px;
+            overflow-x: hidden;
+        }
+
+        .main h1 {
+            color: var(--yellow);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #102352;
+            border: 1px solid var(--brightgreen);
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .stat-card .label {
+            color: var(--yellow);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--white);
+        }
+
+        /* Search bar */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--brightgreen);
+            background: #102352;
+            color: var(--white);
+        }
+
+        .search-bar input::placeholder { color: #aab8d6; }
+
+        .search-bar button {
+            padding: 10px 20px;
+            background: var(--brightgreen);
+            color: var(--darkblue);
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .search-bar button:hover { background: var(--yellow); }
+
+        /* Table */
+        .table-wrap {
+            overflow-x: auto;
+            background: #102352;
+            border-radius: 10px;
+            border: 1px solid var(--brightgreen);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        thead th {
+            background: var(--darkblue);
+            color: var(--yellow);
+            text-align: left;
+            padding: 12px 15px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+        }
+
+        tbody td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #1f3a6e;
+            font-size: 0.95rem;
+        }
+
+        tbody tr:hover { background: #16306b; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-gold    { background: var(--yellow); color: var(--darkblue); }
+        .badge-silver  { background: #c0c0c0; color: var(--darkblue); }
+        .badge-bronze  { background: #cd7f32; color: var(--white); }
+        .badge-starter { background: var(--brightgreen); color: var(--darkblue); }
+        .badge-none    { background: #555; color: var(--white); }
+
+        .view-btn {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--brightgreen);
+            color: var(--darkblue);
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .view-btn:hover { background: var(--yellow); }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pagination a {
+            padding: 8px 14px;
+            background: #102352;
+            color: var(--white);
+            border: 1px solid var(--brightgreen);
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .pagination a.active {
+            background: var(--brightgreen);
+            color: var(--darkblue);
+            font-weight: bold;
+        }
+
+        .pagination a:hover { background: var(--yellow); color: var(--darkblue); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #aab8d6;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 2px solid var(--brightgreen);
+            }
+
+            .sidebar nav {
+                display: flex;
+                overflow-x: auto;
+                gap: 8px;
+            }
+
+            .sidebar a {
+                white-space: nowrap;
+                margin-bottom: 0;
+            }
+
+            .main { padding: 15px; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>Admin Panel</h2>
+            <nav>
+                <a href="/admin">Dashboard</a>
+                <a href="/admin/users">Users</a>
+                <a href="/admin/payments">Payments</a>
+                <a href="/admin/packages">Packages</a>
+                <a href="/admin/tasks">Tasks</a>
+                <a href="/admin/referrals" class="active">Referrals</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <h1>Referrals</h1>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Total Referrers</div>
+                    <div class="value"><%= stats.totalReferrers %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Total Referred Users</div>
+                    <div class="value"><%= stats.totalReferred %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Total Referral Earnings Paid</div>
+                    <div class="value">KES <%= stats.totalReferralEarnings.toLocaleString() %></div>
+                </div>
+            </div>
+
+            <form class="search-bar" method="GET" action="/admin/referrals">
+                <input type="text" name="search" placeholder="Search by username or email..." value="<%= search %>">
+                <button type="submit">Search</button>
+            </form>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Package</th>
+                            <th>Referrals</th>
+                            <th>Referral Earnings</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (referrers.length === 0) { %>
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">No referrers found.</div>
+                                </td>
+                            </tr>
+                        <% } else { %>
+                            <% referrers.forEach(ref => { %>
+                                <tr>
+                                    <td><%= ref.username %></td>
+                                    <td><%= ref.email %></td>
+                                    <td>
+                                        <span class="badge badge-<%= ref.package.toLowerCase() === 'none' ? 'none' : ref.package.toLowerCase() %>">
+                                            <%= ref.package %>
+                                        </span>
+                                    </td>
+                                    <td><%= ref.referralCount %></td>
+                                    <td>KES <%= ref.referralEarnings.toLocaleString() %></td>
+                                    <td><%= new Date(ref.createdAt).toLocaleDateString("en-KE") %></td>
+                                    <td>
+                                        <a class="view-btn" href="/admin/referrals/<%= ref._id %>">View Team</a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            <% if (totalPages > 1) { %>
+                <div class="pagination">
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <a href="/admin/referrals?page=<%= i %><%= search ? '&search=' + search : '' %>"
+                           class="<%= i === page ? 'active' : '' %>">
+                            <%= i %>
+                        </a>
+                    <% } %>
+                </div>
+            <% } %>
+        </main>
+    </div>
+</body>
+</html>

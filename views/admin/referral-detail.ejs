@@ -1,0 +1,225 @@
+<%- include('../partials/adminHeader.ejs'); -%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Referral Detail</title>
+    <style>
+        :root {
+            --darkblue: #0a1a3c;
+            --brightgreen: #00e676;
+            --white: #ffffff;
+            --yellow: #ffd600;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body { background: var(--darkblue); color: var(--white); min-height: 100vh; }
+
+        .layout { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 220px;
+            background: #061230;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 20px;
+            border-right: 2px solid var(--brightgreen);
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 { color: var(--brightgreen); margin-bottom: 30px; font-size: 1.3rem; }
+
+        .sidebar a {
+            display: block;
+            color: var(--white);
+            text-decoration: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background: var(--brightgreen);
+            color: var(--darkblue);
+            font-weight: bold;
+        }
+
+        .main { flex: 1; padding: 20px 30px; overflow-x: hidden; }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: var(--brightgreen);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover { color: var(--yellow); }
+
+        .main h1 { color: var(--yellow); margin-bottom: 5px; font-size: 1.8rem; }
+        .main .sub { color: #aab8d6; margin-bottom: 20px; }
+
+        .profile-card {
+            background: #102352;
+            border: 1px solid var(--brightgreen);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .profile-card .label {
+            color: var(--yellow);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .profile-card .value { font-size: 1.1rem; font-weight: bold; }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: #102352;
+            border-radius: 10px;
+            border: 1px solid var(--brightgreen);
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+
+        thead th {
+            background: var(--darkblue);
+            color: var(--yellow);
+            text-align: left;
+            padding: 12px 15px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        tbody td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #1f3a6e;
+            font-size: 0.95rem;
+        }
+
+        tbody tr:hover { background: #16306b; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-gold    { background: var(--yellow); color: var(--darkblue); }
+        .badge-silver  { background: #c0c0c0; color: var(--darkblue); }
+        .badge-bronze  { background: #cd7f32; color: var(--white); }
+        .badge-starter { background: var(--brightgreen); color: var(--darkblue); }
+        .badge-none    { background: #555; color: var(--white); }
+
+        .empty-state { text-align: center; padding: 40px; color: #aab8d6; }
+
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; }
+            .sidebar {
+                width: 100%; height: auto; position: relative;
+                border-right: none; border-bottom: 2px solid var(--brightgreen);
+            }
+            .sidebar nav { display: flex; overflow-x: auto; gap: 8px; }
+            .sidebar a { white-space: nowrap; margin-bottom: 0; }
+            .main { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>Admin Panel</h2>
+            <nav>
+                <a href="/admin">Dashboard</a>
+                <a href="/admin/users">Users</a>
+                <a href="/admin/payments">Payments</a>
+                <a href="/admin/packages">Packages</a>
+                <a href="/admin/tasks">Tasks</a>
+                <a href="/admin/referrals" class="active">Referrals</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <a class="back-link" href="/admin/referrals">&larr; Back to Referrals</a>
+            <h1><%= referrer.username %>'s Team</h1>
+            <div class="sub"><%= referrer.email %></div>
+
+            <div class="profile-card">
+                <div>
+                    <div class="label">Package</div>
+                    <div class="value">
+                        <span class="badge badge-<%= referrer.package.toLowerCase() === 'none' ? 'none' : referrer.package.toLowerCase() %>">
+                            <%= referrer.package %>
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <div class="label">Referral Earnings</div>
+                    <div class="value">KES <%= referrer.referralEarnings.toLocaleString() %></div>
+                </div>
+                <div>
+                    <div class="label">Total Referrals</div>
+                    <div class="value"><%= referrals.length %></div>
+                </div>
+                <div>
+                    <div class="label">Joined</div>
+                    <div class="value"><%= new Date(referrer.createdAt).toLocaleDateString("en-KE") %></div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Country</th>
+                            <th>Package</th>
+                            <th>Wallet Balance</th>
+                            <th>Referral Earnings</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (referrals.length === 0) { %>
+                            <tr>
+                                <td colspan="8"><div class="empty-state">No referred users yet.</div></td>
+                            </tr>
+                        <% } else { %>
+                            <% referrals.forEach(u => { %>
+                                <tr>
+                                    <td><%= u.username %></td>
+                                    <td><%= u.email %></td>
+                                    <td><%= u.phone %></td>
+                                    <td><%= u.country %></td>
+                                    <td>
+                                        <span class="badge badge-<%= u.package.toLowerCase() === 'none' ? 'none' : u.package.toLowerCase() %>">
+                                            <%= u.package %>
+                                        </span>
+                                    </td>
+                                    <td>KES <%= u.walletBalance.toLocaleString() %></td>
+                                    <td>KES <%= u.referralEarnings.toLocaleString() %></td>
+                                    <td><%= new Date(u.createdAt).toLocaleDateString("en-KE") %></td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -3,6 +3,7 @@ const router      = express.Router();
 const User        = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Task = require("../models/Task");
+const Settings = require("../models/Settings");
 
 /* ── ADMIN GUARD ── */
 function isAdmin(req, res, next) {
@@ -730,6 +731,341 @@ router.post("/admin/users/:userId/toggle-admin", isAdmin, async (req, res) => {
         console.error("Toggle admin error:", err);
         req.flash("error", "Failed to update admin status.");
         res.redirect(`/admin/users/${req.params.userId}`);
+    }
+});
+
+/* ── ADMIN REFERRALS PAGE ── */
+router.get("/admin/referrals", isAdmin, async (req, res) => {
+    try {
+        const search = req.query.search || "";
+        const page   = parseInt(req.query.page) || 1;
+        const limit  = 20;
+        const skip   = (page - 1) * limit;
+
+        // Find users who have at least one referral
+        let referrerQuery = {};
+        if (search) {
+            referrerQuery.$or = [
+                { username: { $regex: search, $options: "i" } },
+                { email:    { $regex: search, $options: "i" } }
+            ];
+        }
+
+        // Aggregate referral counts per referrer
+        const referralCounts = await User.aggregate([
+            { $match: { referrer: { $ne: null } } },
+            { $group: { _id: "$referrer", count: { $sum: 1 }, totalEarningsGenerated: { $sum: "$walletBalance" } } }
+        ]);
+
+        const referrerIds = referralCounts.map(r => r._id);
+        referrerQuery._id = { $in: referrerIds };
+
+        const totalCount = await User.countDocuments(referrerQuery);
+
+        const referrers = await User.find(referrerQuery)
+            .select("username email phone package referralEarnings createdAt")
+            .sort({ referralEarnings: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        // Attach referral count to each referrer
+        const countMap = {};
+        referralCounts.forEach(r => { countMap[r._id.toString()] = r.count; });
+
+        const referrersWithCounts = referrers.map(u => ({
+            ...u.toObject(),
+            referralCount: countMap[u._id.toString()] || 0
+        }));
+
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Summary stats
+        const totalReferrers = referralCounts.length;
+        const totalReferred  = referralCounts.reduce((sum, r) => sum + r.count, 0);
+
+        const totalReferralEarnings = await User.aggregate([
+            { $group: { _id: null, total: { $sum: "$referralEarnings" } } }
+        ]);
+
+        res.render("admin/referrals", {
+            referrers: referrersWithCounts,
+            search,
+            page,
+            totalPages,
+            totalCount,
+            stats: {
+                totalReferrers,
+                totalReferred,
+                totalReferralEarnings: totalReferralEarnings[0]?.total || 0
+            }
+        });
+
+    } catch (err) {
+        console.error("Admin referrals error:", err);
+        req.flash("error", "Failed to load referrals.");
+        res.redirect("/admin");
+    }
+});
+
+/* ── ADMIN: VIEW SINGLE REFERRER'S TEAM ── */
+router.get("/admin/referrals/:userId", isAdmin, async (req, res) => {
+    try {
+        const referrer = await User.findById(req.params.userId)
+            .select("username email phone package referralEarnings createdAt");
+
+        if (!referrer) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/referrals");
+        }
+
+        const referrals = await User.find({ referrer: referrer._id })
+            .select("username email phone country package walletBalance referralEarnings createdAt")
+            .sort({ createdAt: -1 });
+
+        res.render("admin/referral-detail", { referrer, referrals });
+
+    } catch (err) {
+        console.error("Referral detail error:", err);
+        req.flash("error", "Failed to load referral details.");
+        res.redirect("/admin/referrals");
+    }
+});
+
+/* ── ADMIN SETTINGS PAGE ── */
+router.get("/admin/settings", isAdmin, async (req, res) => {
+    try {
+        let settings = await Settings.findOne({ key: "platform" });
+
+        if (!settings) {
+            settings = await Settings.create({ key: "platform" });
+        }
+
+        const admins = await User.find({ isAdmin: true })
+            .select("username email phone createdAt");
+
+        res.render("admin/settings", {
+            settings,
+            admins,
+            currentUserId: req.user._id.toString()
+        });
+
+    } catch (err) {
+        console.error("Admin settings error:", err);
+        req.flash("error", "Failed to load settings.");
+        res.redirect("/admin");
+    }
+});
+
+/* ── UPDATE PLATFORM SETTINGS ── */
+router.post("/admin/settings/update", isAdmin, async (req, res) => {
+    try {
+        const {
+            siteName,
+            minDeposit,
+            minWithdrawal,
+            withdrawalFeePct,
+            referralBonusPct,
+            depositInstructions,
+            mpesaPaybill,
+            mpesaAccountName,
+            supportPhone,
+            supportEmail,
+            announcementBanner,
+            maintenanceMode,
+            maintenanceMessage
+        } = req.body;
+
+        let settings = await Settings.findOne({ key: "platform" });
+        if (!settings) {
+            settings = new Settings({ key: "platform" });
+        }
+
+        if (siteName !== undefined)            settings.siteName            = siteName.trim();
+        if (minDeposit !== undefined)           settings.minDeposit          = Number(minDeposit);
+        if (minWithdrawal !== undefined)        settings.minWithdrawal       = Number(minWithdrawal);
+        if (withdrawalFeePct !== undefined)     settings.withdrawalFeePct    = Number(withdrawalFeePct);
+        if (referralBonusPct !== undefined)     settings.referralBonusPct    = Number(referralBonusPct);
+        if (depositInstructions !== undefined)  settings.depositInstructions = depositInstructions.trim();
+        if (mpesaPaybill !== undefined)         settings.mpesaPaybill        = mpesaPaybill.trim();
+        if (mpesaAccountName !== undefined)     settings.mpesaAccountName    = mpesaAccountName.trim();
+        if (supportPhone !== undefined)         settings.supportPhone        = supportPhone.trim();
+        if (supportEmail !== undefined)         settings.supportEmail        = supportEmail.trim();
+        if (announcementBanner !== undefined)   settings.announcementBanner  = announcementBanner.trim();
+        if (maintenanceMessage !== undefined)   settings.maintenanceMessage  = maintenanceMessage.trim();
+
+        settings.maintenanceMode = maintenanceMode === "on" || maintenanceMode === "true";
+
+        await settings.save();
+
+        req.flash("success", "Platform settings updated successfully.");
+        res.redirect("/admin/settings");
+
+    } catch (err) {
+        console.error("Update settings error:", err);
+        req.flash("error", "Failed to update settings.");
+        res.redirect("/admin/settings");
+    }
+});
+
+/* ── RESET USER PASSWORD ── */
+router.post("/admin/settings/reset-password", isAdmin, async (req, res) => {
+    try {
+        const { userIdentifier, newPassword, confirmPassword } = req.body;
+
+        if (!userIdentifier || !newPassword) {
+            req.flash("error", "Please provide a username/email and new password.");
+            return res.redirect("/admin/settings");
+        }
+
+        if (newPassword.length < 6) {
+            req.flash("error", "Password must be at least 6 characters.");
+            return res.redirect("/admin/settings");
+        }
+
+        if (newPassword !== confirmPassword) {
+            req.flash("error", "Passwords do not match.");
+            return res.redirect("/admin/settings");
+        }
+
+        // Find by username OR email
+        const user = await User.findOne({
+            $or: [
+                { username: userIdentifier.trim() },
+                { email: userIdentifier.trim() }
+            ]
+        });
+
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/settings");
+        }
+
+        // passport-local-mongoose method to set new password (handles hashing)
+        await user.setPassword(newPassword);
+        await user.save();
+
+        req.flash("success", `Password reset successfully for ${user.username}.`);
+        res.redirect("/admin/settings");
+
+    } catch (err) {
+        console.error("Reset password error:", err);
+        req.flash("error", "Failed to reset password.");
+        res.redirect("/admin/settings");
+    }
+});
+
+/* ── ADD NEW ADMIN ── */
+router.post("/admin/settings/add-admin", isAdmin, async (req, res) => {
+    try {
+        const { userIdentifier } = req.body;
+
+        if (!userIdentifier) {
+            req.flash("error", "Please provide a username or email.");
+            return res.redirect("/admin/settings");
+        }
+
+        const user = await User.findOne({
+            $or: [
+                { username: userIdentifier.trim() },
+                { email: userIdentifier.trim() }
+            ]
+        });
+
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/settings");
+        }
+
+        if (user.isAdmin) {
+            req.flash("error", `${user.username} is already an admin.`);
+            return res.redirect("/admin/settings");
+        }
+
+        user.isAdmin = true;
+        await user.save();
+
+        req.flash("success", `${user.username} has been granted admin access.`);
+        res.redirect("/admin/settings");
+
+    } catch (err) {
+        console.error("Add admin error:", err);
+        req.flash("error", "Failed to add admin.");
+        res.redirect("/admin/settings");
+    }
+});
+
+/* ── REMOVE ADMIN ── */
+router.post("/admin/settings/remove-admin/:userId", isAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin/settings");
+        }
+
+        if (user._id.toString() === req.user._id.toString()) {
+            req.flash("error", "You cannot remove your own admin status.");
+            return res.redirect("/admin/settings");
+        }
+
+        user.isAdmin = false;
+        await user.save();
+
+        req.flash("success", `${user.username}'s admin access has been removed.`);
+        res.redirect("/admin/settings");
+
+    } catch (err) {
+        console.error("Remove admin error:", err);
+        req.flash("error", "Failed to remove admin.");
+        res.redirect("/admin/settings");
+    }
+});
+
+/* ── ADMIN CHANGE OWN PASSWORD ── */
+router.post("/admin/settings/change-my-password", isAdmin, async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            req.flash("error", "Please fill in all password fields.");
+            return res.redirect("/admin/settings");
+        }
+
+        if (newPassword !== confirmPassword) {
+            req.flash("error", "New passwords do not match.");
+            return res.redirect("/admin/settings");
+        }
+
+        if (newPassword.length < 6) {
+            req.flash("error", "Password must be at least 6 characters.");
+            return res.redirect("/admin/settings");
+        }
+
+        const user = await User.findById(req.user._id);
+
+        // authenticate() is provided by passport-local-mongoose
+        const { user: authUser, error } = await new Promise((resolve) => {
+            user.authenticate(currentPassword, (err, authUser, error) => {
+                resolve({ user: authUser, error: err || error });
+            });
+        });
+
+        if (!authUser) {
+            req.flash("error", "Current password is incorrect.");
+            return res.redirect("/admin/settings");
+        }
+
+        await user.setPassword(newPassword);
+        await user.save();
+
+        req.flash("success", "Your password has been updated successfully.");
+        res.redirect("/admin/settings");
+
+    } catch (err) {
+        console.error("Change own password error:", err);
+        req.flash("error", "Failed to change password.");
+        res.redirect("/admin/settings");
     }
 });
 

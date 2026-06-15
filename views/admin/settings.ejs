@@ -1,0 +1,537 @@
+<%- include('../partials/adminHeader') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings</title>
+    <style>
+        :root {
+            --darkblue: #0a1f44;
+            --brightgreen: #00e676;
+            --white: #ffffff;
+            --yellow: #ffd60a;
+            --darkblue-light: #132a5e;
+            --border: #1e3a6e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6fb;
+            color: #1a1a2e;
+        }
+
+        /* ── LAYOUT ── */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar placeholder - assumes fixed sidebar already exists in your layout */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 250px; /* adjust to match your fixed sidebar width */
+            width: calc(100% - 250px);
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 15px;
+            }
+        }
+
+        /* ── HEADER ── */
+        .page-header {
+            background: var(--darkblue);
+            color: var(--white);
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .page-header h1 {
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-header h1 .accent {
+            color: var(--brightgreen);
+        }
+
+        /* ── ALERTS ── */
+        .alert {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: var(--brightgreen);
+            color: var(--darkblue);
+        }
+
+        .alert-error {
+            background: #ffe0e0;
+            color: #c0392b;
+            border-left: 4px solid #c0392b;
+        }
+
+        /* ── GRID ── */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(10, 31, 68, 0.08);
+            border-top: 4px solid var(--darkblue);
+        }
+
+        .card.accent-green { border-top-color: var(--brightgreen); }
+        .card.accent-yellow { border-top-color: var(--yellow); }
+
+        .card h2 {
+            color: var(--darkblue);
+            font-size: 18px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #eef1f7;
+            padding-bottom: 12px;
+        }
+
+        .card h2 .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--brightgreen);
+            display: inline-block;
+        }
+
+        .card.accent-yellow h2 .dot { background: var(--yellow); }
+
+        /* ── FORM ── */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--darkblue);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #d8dce8;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--darkblue);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        /* ── TOGGLE SWITCH ── */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f4f6fb;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-row label {
+            font-weight: 600;
+            color: var(--darkblue);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked + .slider {
+            background-color: var(--brightgreen);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-block;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn:hover { opacity: 0.9; }
+
+        .btn-primary {
+            background: var(--darkblue);
+            color: var(--white);
+        }
+
+        .btn-success {
+            background: var(--brightgreen);
+            color: var(--darkblue);
+        }
+
+        .btn-warning {
+            background: var(--yellow);
+            color: var(--darkblue);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: var(--white);
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* ── ADMIN LIST ── */
+        .admin-list {
+            list-style: none;
+        }
+
+        .admin-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: #f4f6fb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .admin-info strong {
+            color: var(--darkblue);
+            display: block;
+        }
+
+        .admin-info span {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .badge {
+            background: var(--darkblue);
+            color: var(--white);
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* ── DIVIDER ── */
+        .divider {
+            border: none;
+            border-top: 1px solid #eef1f7;
+            margin: 20px 0;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: -10px;
+            margin-bottom: 14px;
+        }
+
+        .section-label {
+            color: var(--darkblue);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <!-- Your fixed sidebar/menu component goes here (included via layout/partial) -->
+
+    <div class="main-content">
+
+        <div class="page-header">
+            <h1>⚙️ Admin <span class="accent">Settings</span></h1>
+        </div>
+
+        <% if (typeof messages !== 'undefined' && messages.success && messages.success.length) { %>
+            <div class="alert alert-success"><%= messages.success[0] %></div>
+        <% } %>
+        <% if (typeof messages !== 'undefined' && messages.error && messages.error.length) { %>
+            <div class="alert alert-error"><%= messages.error[0] %></div>
+        <% } %>
+
+        <div class="settings-grid">
+
+            <!-- ── PLATFORM SETTINGS ── -->
+            <div class="card">
+                <h2><span class="dot"></span> Platform Settings</h2>
+                <form action="/admin/settings/update" method="POST">
+
+                    <div class="form-group">
+                        <label>Site Name</label>
+                        <input type="text" name="siteName" value="<%= settings.siteName %>">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Minimum Deposit (KES)</label>
+                            <input type="number" name="minDeposit" value="<%= settings.minDeposit %>" step="1" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Minimum Withdrawal (KES)</label>
+                            <input type="number" name="minWithdrawal" value="<%= settings.minWithdrawal %>" step="1" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Withdrawal Fee (%)</label>
+                            <input type="number" name="withdrawalFeePct" value="<%= settings.withdrawalFeePct %>" step="0.1" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Referral Bonus (%)</label>
+                            <input type="number" name="referralBonusPct" value="<%= settings.referralBonusPct %>" step="0.1" min="0">
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+                    <div class="section-label">M-Pesa Details</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Paybill / Till Number</label>
+                            <input type="text" name="mpesaPaybill" value="<%= settings.mpesaPaybill %>">
+                        </div>
+                        <div class="form-group">
+                            <label>Account Name</label>
+                            <input type="text" name="mpesaAccountName" value="<%= settings.mpesaAccountName %>">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Deposit Instructions</label>
+                        <textarea name="depositInstructions" placeholder="e.g. Go to M-Pesa > Lipa na M-Pesa > Paybill..."><%= settings.depositInstructions %></textarea>
+                    </div>
+
+                    <hr class="divider">
+                    <div class="section-label">Support & Announcements</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Support Phone</label>
+                            <input type="text" name="supportPhone" value="<%= settings.supportPhone %>">
+                        </div>
+                        <div class="form-group">
+                            <label>Support Email</label>
+                            <input type="email" name="supportEmail" value="<%= settings.supportEmail %>">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Announcement Banner (shown to all users)</label>
+                        <textarea name="announcementBanner" placeholder="e.g. Scheduled maintenance on Sunday..."><%= settings.announcementBanner %></textarea>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="toggle-row">
+                        <label>Maintenance Mode</label>
+                        <label class="switch">
+                            <input type="checkbox" name="maintenanceMode" <%= settings.maintenanceMode ? "checked" : "" %>>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Maintenance Message</label>
+                        <textarea name="maintenanceMessage"><%= settings.maintenanceMessage %></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Save Platform Settings</button>
+                </form>
+            </div>
+
+            <!-- ── PASSWORD MANAGEMENT ── -->
+            <div class="card accent-yellow">
+                <h2><span class="dot"></span> Reset User Password</h2>
+
+                <form action="/admin/settings/reset-password" method="POST">
+                    <div class="form-group">
+                        <label>Username or Email</label>
+                        <input type="text" name="userIdentifier" placeholder="e.g. john_doe or john@email.com" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" name="newPassword" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" name="confirmPassword" minlength="6" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning btn-block">Reset Password</button>
+                </form>
+
+                <hr class="divider">
+
+                <h2 style="margin-top: 0;"><span class="dot"></span> Change My Password</h2>
+
+                <form action="/admin/settings/change-my-password" method="POST">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" name="currentPassword" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" name="newPassword" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" name="confirmPassword" minlength="6" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Update My Password</button>
+                </form>
+            </div>
+
+            <!-- ── ADMIN MANAGEMENT ── -->
+            <div class="card accent-green">
+                <h2><span class="dot"></span> Admin Management</h2>
+
+                <form action="/admin/settings/add-admin" method="POST" style="margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>Grant Admin Access</label>
+                        <input type="text" name="userIdentifier" placeholder="Username or email">
+                        <p class="helper-text">Promote an existing user to admin.</p>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">Add Admin</button>
+                </form>
+
+                <hr class="divider">
+
+                <div class="section-label">Current Admins (<%= admins.length %>)</div>
+                <ul class="admin-list">
+                    <% admins.forEach(admin => { %>
+                        <li>
+                            <div class="admin-info">
+                                <strong><%= admin.username %> <span class="badge">Admin</span></strong>
+                                <span><%= admin.email %> · <%= admin.phone %></span>
+                            </div>
+                            <% if (admin._id.toString() !== currentUserId) { %>
+                                <form action="/admin/settings/remove-admin/<%= admin._id %>" method="POST" onsubmit="return confirm('Remove admin access for <%= admin.username %>?')">
+                                    <button type="submit" class="btn btn-danger">Remove</button>
+                                </form>
+                            <% } else { %>
+                                <span class="badge" style="background: var(--yellow); color: var(--darkblue);">You</span>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
