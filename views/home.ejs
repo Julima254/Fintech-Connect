@@ -94,6 +94,41 @@
 
 </main>
 
+<a href="/community" class="join-community-btn" title="Join Community">
+    💬 <span class="join-text">Join Community</span>
+</a>
+
+<style>
+    .join-community-btn {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background-color: #0a1f44;
+        color: #ffd60a;
+        border: 2px solid #00e676;
+        padding: 14px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 1000;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .join-community-btn:hover {
+        background-color: #00e676;
+        color: #0a1f44;
+        transform: scale(1.05);
+    }
+    @media (max-width: 480px) {
+        .join-community-btn .join-text { display: none; }
+        .join-community-btn { padding: 14px; border-radius: 50%; }
+    }
+</style>
+
+
 <script>
     const walletEl = document.getElementById("wallet-balance");
     const tasksEl  = document.getElementById("tasks-balance");
@@ -114,6 +149,7 @@
 
     setInterval(updateBalances, 10000);
 </script>
+
 
 </body>
 </html>

@@ -4,6 +4,7 @@ const User        = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Task = require("../models/Task");
 const Settings = require("../models/Settings");
+const Message = require("../models/Message");
 
 /* ── ADMIN GUARD ── */
 function isAdmin(req, res, next) {
@@ -830,6 +831,113 @@ router.get("/admin/referrals/:userId", isAdmin, async (req, res) => {
         res.redirect("/admin/referrals");
     }
 });
+
+
+/* ── ADMIN COMMUNITY MODERATION PAGE ── */
+router.get("/admin/community", isAdmin, async (req, res) => {
+    try {
+        const search = req.query.search || "";
+        const filter = req.query.filter || "all"; // all | images | text
+
+        let query = {};
+        if (search) {
+            query.$or = [
+                { username: { $regex: search, $options: "i" } },
+                { text:     { $regex: search, $options: "i" } }
+            ];
+        }
+        if (filter === "images") query.image = { $ne: null };
+        if (filter === "text")   query.image = null;
+
+        const messages = await Message.find(query)
+            .sort({ createdAt: -1 })
+            .limit(200)
+            .populate("user", "username email isAdmin");
+
+        const totalMessages = await Message.countDocuments();
+        const imageMessages = await Message.countDocuments({ image: { $ne: null } });
+
+        const now        = new Date();
+        const todayStart  = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const messagesToday = await Message.countDocuments({ createdAt: { $gte: todayStart } });
+
+        const uniqueUserIds = await Message.distinct("user");
+
+        res.render("admin/community", {
+            messages,
+            search,
+            filter,
+            stats: {
+                totalMessages,
+                imageMessages,
+                messagesToday,
+                uniqueUsers: uniqueUserIds.length
+            }
+        });
+
+    } catch (err) {
+        console.error("Admin community error:", err);
+        req.flash("error", "Failed to load community chat.");
+        res.redirect("/admin");
+    }
+});
+
+/* ── POLLED BY admin/community.ejs FOR LIVE REFRESH ── */
+router.get("/admin/community/messages", isAdmin, async (req, res) => {
+    try {
+        const search = req.query.search || "";
+        const filter = req.query.filter || "all";
+
+        let query = {};
+        if (search) {
+            query.$or = [
+                { username: { $regex: search, $options: "i" } },
+                { text:     { $regex: search, $options: "i" } }
+            ];
+        }
+        if (filter === "images") query.image = { $ne: null };
+        if (filter === "text")   query.image = null;
+
+        const messages = await Message.find(query)
+            .sort({ createdAt: -1 })
+            .limit(200)
+            .populate("user", "username isAdmin");
+
+        res.json({ success: true, messages });
+
+    } catch (err) {
+        console.error("Admin community messages error:", err);
+        res.json({ success: false });
+    }
+});
+
+/* ── DELETE A SINGLE MESSAGE ── */
+router.post("/admin/community/delete/:id", isAdmin, async (req, res) => {
+    try {
+        const message = await Message.findByIdAndDelete(req.params.id);
+        if (!message) {
+            return res.json({ success: false, error: "Message not found." });
+        }
+        res.json({ success: true, id: req.params.id });
+
+    } catch (err) {
+        console.error("Delete message error:", err);
+        res.json({ success: false, error: "Failed to delete message." });
+    }
+});
+
+/* ── DELETE ALL MESSAGES FROM A SPECIFIC USER ── */
+router.post("/admin/community/delete-user/:userId", isAdmin, async (req, res) => {
+    try {
+        const result = await Message.deleteMany({ user: req.params.userId });
+        res.json({ success: true, userId: req.params.userId, deletedCount: result.deletedCount });
+
+    } catch (err) {
+        console.error("Delete user messages error:", err);
+        res.json({ success: false, error: "Failed to delete user's messages." });
+    }
+});
+
 
 /* ── ADMIN SETTINGS PAGE ── */
 router.get("/admin/settings", isAdmin, async (req, res) => {

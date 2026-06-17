@@ -1,0 +1,269 @@
+<%- include('../partials/adminHeader') %>
+
+<main class="admin-main community-page">
+
+    <style>
+        .community-page {
+            --brightgreen: #21d97a;
+            --yellow: #FFD700;
+            --darkblue: #0B2545;
+            --white: #ffffff;
+            --offwhite: #f4f6fb;
+            --muted: #8a93b8;
+        }
+
+        .community-page .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 18px;
+            color: var(--darkblue);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .community-page .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .community-page .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px 18px;
+            border-left: 5px solid var(--brightgreen);
+            box-shadow: 0 2px 6px rgba(11,37,69,0.08);
+        }
+        .community-page .stat-card.alt { border-left-color: var(--yellow); }
+        .community-page .stat-card .value { font-size: 1.6rem; font-weight: 800; color: var(--darkblue); }
+        .community-page .stat-card .label { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+        .community-page .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .community-page .search-form { display: flex; gap: 8px; flex: 1; min-width: 220px; }
+        .community-page .search-form input[type="text"] {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #d8dcec;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'Open Sans', sans-serif;
+        }
+        .community-page .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Open Sans', sans-serif;
+        }
+        .community-page .btn-primary { background: var(--darkblue); color: var(--white); }
+        .community-page .btn-yellow { background: var(--yellow); color: var(--darkblue); }
+        .community-page .btn-outline { background: transparent; color: var(--darkblue); border: 1px solid #d8dcec; }
+        .community-page .btn:hover { filter: brightness(0.95); }
+
+        .community-page .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .community-page .pill {
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--darkblue);
+            background: var(--white);
+            border: 1px solid #d8dcec;
+        }
+        .community-page .pill.active { background: var(--darkblue); color: var(--white); border-color: var(--darkblue); }
+
+        .community-page .messages-panel {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 2px 8px rgba(11,37,69,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .community-page .empty-state { text-align: center; padding: 40px 10px; color: var(--muted); }
+
+        .community-page .message-card {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--offwhite);
+            border: 1px solid #e7eaf3;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .community-page .message-card.removing { opacity: 0; transform: scale(0.97); }
+
+        .community-page .avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: var(--brightgreen);
+            color: var(--darkblue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .community-page .msg-body { flex: 1; min-width: 0; }
+        .community-page .msg-head {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .community-page .msg-username { font-weight: 700; color: var(--darkblue); }
+        .community-page .badge-admin {
+            background: var(--yellow);
+            color: var(--darkblue);
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+        .community-page .msg-time { font-size: 0.75rem; color: var(--muted); }
+        .community-page .msg-text { font-size: 0.92rem; color: #1c2440; word-break: break-word; white-space: pre-wrap; }
+        .community-page .msg-image {
+            max-width: 220px;
+            max-height: 220px;
+            border-radius: 8px;
+            margin-top: 6px;
+            display: block;
+            border: 1px solid #e2e6f0;
+        }
+        .community-page .msg-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .community-page .msg-actions .btn { padding: 6px 12px; font-size: 0.78rem; }
+    </style>
+
+    <h1 class="page-title">Community Moderation</h1>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="value"><%= stats.totalMessages %></div>
+            <div class="label">Total Messages</div>
+        </div>
+        <div class="stat-card">
+            <div class="value"><%= stats.messagesToday %></div>
+            <div class="label">Messages Today</div>
+        </div>
+        <div class="stat-card alt">
+            <div class="value"><%= stats.imageMessages %></div>
+            <div class="label">Image Messages</div>
+        </div>
+        <div class="stat-card">
+            <div class="value"><%= stats.uniqueUsers %></div>
+            <div class="label">Unique Participants</div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <form class="search-form" method="GET" action="/admin/community">
+            <input type="text" name="search" placeholder="Search username or message text..." value="<%= search %>">
+            <input type="hidden" name="filter" value="<%= filter %>">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <div class="filter-pills">
+            <a href="/admin/community?filter=all&search=<%= encodeURIComponent(search) %>" class="pill <%= filter === 'all' ? 'active' : '' %>">All</a>
+            <a href="/admin/community?filter=text&search=<%= encodeURIComponent(search) %>" class="pill <%= filter === 'text' ? 'active' : '' %>">Text Only</a>
+            <a href="/admin/community?filter=images&search=<%= encodeURIComponent(search) %>" class="pill <%= filter === 'images' ? 'active' : '' %>">Images Only</a>
+            <button class="btn btn-outline" id="communityRefreshBtn" type="button">Refresh</button>
+        </div>
+    </div>
+
+    <div class="messages-panel" id="communityMessagesPanel">
+        <% if (messages.length === 0) { %>
+            <div class="empty-state">No messages found.</div>
+        <% } else { %>
+            <% messages.forEach(m => { %>
+                <div class="message-card" data-id="<%= m._id %>" data-user="<%= m.user ? m.user._id : '' %>">
+                    <div class="avatar"><%= (m.username || '?').charAt(0).toUpperCase() %></div>
+                    <div class="msg-body">
+                        <div class="msg-head">
+                            <span class="msg-username"><%= m.username %></span>
+                            <% if (m.user && m.user.isAdmin) { %><span class="badge-admin">Admin</span><% } %>
+                            <span class="msg-time"><%= new Date(m.createdAt).toLocaleString("en-KE") %></span>
+                        </div>
+                        <% if (m.text) { %><div class="msg-text"><%= m.text %></div><% } %>
+                        <% if (m.image) { %><img class="msg-image" src="<%= m.image %>" alt="attachment"><% } %>
+                        <div class="msg-actions">
+                            <button class="btn btn-yellow community-delete-btn" data-id="<%= m._id %>">Delete Message</button>
+                            <% if (m.user) { %>
+                                <button class="btn btn-outline community-delete-user-btn" data-user="<%= m.user._id %>" data-username="<%= m.username %>">Delete All From User</button>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } %>
+    </div>
+
+</main>
+
+<script>
+    (function () {
+        const communityPanel = document.getElementById('communityMessagesPanel');
+
+        communityPanel.addEventListener('click', async (e) => {
+            const delBtn = e.target.closest('.community-delete-btn');
+            const delUserBtn = e.target.closest('.community-delete-user-btn');
+
+            if (delBtn) {
+                if (!confirm('Delete this message permanently?')) return;
+                const id = delBtn.dataset.id;
+                try {
+                    const res = await fetch(`/admin/community/delete/${id}`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        const card = communityPanel.querySelector(`.message-card[data-id="${id}"]`);
+                        if (card) {
+                            card.classList.add('removing');
+                            setTimeout(() => card.remove(), 200);
+                        }
+                    } else {
+                        alert(data.error || 'Failed to delete message.');
+                    }
+                } catch (err) {
+                    alert('Network error while deleting message.');
+                }
+            }
+
+            if (delUserBtn) {
+                const userId = delUserBtn.dataset.user;
+                const username = delUserBtn.dataset.username;
+                if (!confirm(`Delete ALL messages from "${username}"? This cannot be undone.`)) return;
+                try {
+                    const res = await fetch(`/admin/community/delete-user/${userId}`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        communityPanel.querySelectorAll(`.message-card[data-user="${userId}"]`).forEach(card => {
+                            card.classList.add('removing');
+                            setTimeout(() => card.remove(), 200);
+                        });
+                    } else {
+                        alert(data.error || 'Failed to delete messages.');
+                    }
+                } catch (err) {
+                    alert('Network error while deleting messages.');
+                }
+            }
+        });
+
+        const refreshBtn = document.getElementById('communityRefreshBtn');
+        if (refreshBtn) refreshBtn.addEventListener('click', () => window.location.reload());
+    })();
+</script>

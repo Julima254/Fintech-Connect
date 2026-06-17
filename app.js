@@ -21,6 +21,7 @@ const tasksRoutes = require('./routes/tasks');
 const transactionsRoutes = require('./routes/transactions');
 const teamRoutes = require('./routes/team');
 const profileRoutes = require('./routes/profile');
+const communityRoutes = require('./routes/community');
 
 const app = express();
 
@@ -69,6 +70,7 @@ app.use("/", tasksRoutes);
 app.use("/", transactionsRoutes);
 app.use("/", teamRoutes);
 app.use("/", profileRoutes);
+app.use("/", communityRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
