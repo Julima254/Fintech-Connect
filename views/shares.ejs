@@ -2,126 +2,415 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fintech Connect Shares | Coming Soon</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        darkblue: '#0F2942',     // Professional Deep Navy for text/accents
-                        brightgreen: '#00B67A',   // Clean, Vibrant Success Green
-                        lightbg: '#F4F7F9'        // Soft Off-White/Light Gray background
-                    }
-                }
-            }
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fintech Smart SACCO</title>
+  <style>
+    :root {
+      --dark-blue: #0a2540;
+      --dark-blue-light: #12365e;
+      --bright-green: #00c853;
+      --bright-green-dark: #00a844;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .brand-header h1 {
+      color: var(--dark-blue);
+      font-size: 26px;
+    }
+
+    .brand-header span {
+      color: var(--bright-green);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(10, 37, 64, 0.08);
+      border: 1px solid var(--border);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+
+    .alert-success {
+      background: #e6f9ee;
+      color: var(--bright-green-dark);
+      border: 1px solid var(--bright-green);
+    }
+
+    .alert-error {
+      background: #fdecec;
+      color: #c0392b;
+      border: 1px solid #e57373;
+    }
+
+    /* STEP 1: Welcome + Terms */
+    #step1 h2 {
+      color: var(--dark-blue);
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    #step1 p.intro {
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .terms-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .terms-box h3 {
+      color: var(--dark-blue);
+      font-size: 15px;
+      margin: 14px 0 6px;
+    }
+
+    .terms-box h3:first-child { margin-top: 0; }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--bright-green);
+    }
+
+    .checkbox-row label {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    /* STEP 2: Form */
+    #step2 { display: none; }
+
+    #step2 h2 {
+      color: var(--dark-blue);
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    #step2 p.sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .fee-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--dark-blue);
+      color: #fff;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+    }
+
+    .fee-banner .fee-label {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .fee-banner .fee-amount {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bright-green);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark-blue);
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--bright-green);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.99); }
+
+    .btn-primary {
+      background: var(--bright-green);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: var(--dark-blue);
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    .btn:disabled {
+      background: #b0bec5;
+      cursor: not-allowed;
+    }
+
+    /* STATUS CARD (already registered) */
+    .status-card h2 {
+      color: var(--dark-blue);
+      margin-bottom: 15px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .status-pending  { background: #fff4e0; color: #b26a00; }
+    .status-approved { background: #e6f9ee; color: var(--bright-green-dark); }
+    .status-rejected { background: #fdecec; color: #c0392b; }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .detail-row:last-child { border-bottom: none; }
+
+    .detail-row .label { color: var(--muted); }
+    .detail-row .value { font-weight: 600; color: var(--text); }
+  </style>
 </head>
-<body class="bg-lightbg text-darkblue font-sans min-h-screen flex flex-col justify-between antialiased">
+<body>
+  <div class="container">
+    <div class="brand-header">
+      <h1>Fintech Smart <span>SACCO</span></h1>
+    </div>
 
-    <!-- Header / Navbar Section -->
-    <header class="w-full max-w-7xl mx-auto px-6 py-5 flex justify-between items-center bg-white border-b border-gray-100 shadow-sm sm:shadow-none sm:bg-transparent">
-        <div class="flex items-center gap-2 text-xl font-bold tracking-tight text-darkblue">
-            <!-- Simple Custom Logo Mark -->
-            <svg class="w-6 h-6 text-brightgreen" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-            </svg>
-            Fintech <span class="text-brightgreen">Connect</span>
-        </div>
-        <div>
-            <a href="#notify-section" class="bg-brightgreen hover:bg-[#00A36C] text-white font-semibold text-sm px-5 py-2.5 rounded-full transition duration-300 shadow-md shadow-brightgreen/20">
-                Notify Me
-            </a>
-        </div>
-    </header>
+    <% if (typeof success !== 'undefined' && success.length > 0) { %>
+      <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error.length > 0) { %>
+      <div class="alert alert-error"><%= error[0] %></div>
+    <% } %>
 
-    <!-- Main Content Container (Mobile-First Layout) -->
-    <main class="w-full max-w-4xl mx-auto px-4 sm:px-8 lg:px-12 py-10 flex-grow flex flex-col items-center text-center">
-        
-        <!-- FIRST THING USERS NOTICE: Main Coming Soon Heading Stack -->
-        <div class="space-y-2 mb-8">
-            <h2 class="text-xs md:text-sm font-extrabold uppercase tracking-widest text-darkblue/60">
-                Fintech Connect Shares
-            </h2>
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-darkblue uppercase leading-none">
-                Is <span class="text-brightgreen block sm:inline">Coming Soon</span>
-            </h1>
-        </div>
-
-        <!-- The Showcase Feature Image -->
-        <div class="w-full max-w-md md:max-w-xl mx-auto mb-8 transition-transform duration-500 hover:scale-[1.01]">
-            <img 
-                src="/images/buy shares.png" 
-                alt="Fintech Connect Share Management Dashboard Preview" 
-                class="w-full h-auto drop-shadow-xl rounded-2xl"
-            >
-        </div>
-
-        <!-- Short Description Paragraph -->
-        <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed mb-10">
-            Get ready to unlock new investment opportunities and multiply your wealth. We are building a secure, intuitive platform for simple share purchasing and automated dividend growth.
+    <% if (member) { %>
+      <!-- ALREADY REGISTERED: show status -->
+      <div class="card status-card">
+        <h2>Your SACCO Membership</h2>
+        <p style="margin-bottom:15px;">
+          Status:
+          <span class="status-badge status-<%= member.status %>"><%= member.status %></span>
         </p>
 
-        <!-- Feature Split Cards (Stacked on Mobile, Row on Tablet/Desktop) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl mx-auto text-left mb-12">
-            <!-- Card 1 -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition">
-                <div>
-                    <div class="w-10 h-10 bg-brightgreen/10 text-brightgreen rounded-xl flex items-center justify-center mb-4 font-bold">
-                        📈
-                    </div>
-                    <h3 class="text-lg font-bold text-darkblue mb-2">Seamless Share Ownership</h3>
-                    <p class="text-sm text-gray-500 leading-relaxed">Securely acquire and track fractional shares from a global market with a clear interface.</p>
-                </div>
-                <span class="absolute top-4 right-6 text-4xl font-black text-gray-100 select-none pointer-events-none">1</span>
-            </div>
+        <div class="detail-row"><span class="label">Full Name</span><span class="value"><%= member.fullName %></span></div>
+        <div class="detail-row"><span class="label">ID Number</span><span class="value"><%= member.idNumber %></span></div>
+        <div class="detail-row"><span class="label">Phone</span><span class="value"><%= member.phone %></span></div>
+        <div class="detail-row"><span class="label">Email</span><span class="value"><%= member.email %></span></div>
+        <div class="detail-row"><span class="label">Occupation</span><span class="value"><%= member.occupation %></span></div>
+        <div class="detail-row"><span class="label">Registration Fee Paid</span><span class="value">KES <%= member.registrationFeePaid %></span></div>
+        <div class="detail-row"><span class="label">Registered On</span><span class="value"><%= new Date(member.createdAt).toLocaleDateString() %></span></div>
 
-            <!-- Card 2 -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition">
-                <div>
-                    <div class="w-10 h-10 bg-brightgreen/10 text-brightgreen rounded-xl flex items-center justify-center mb-4 font-bold">
-                        💰
-                    </div>
-                    <h3 class="text-lg font-bold text-darkblue mb-2">Simple Profit Distribution</h3>
-                    <p class="text-sm text-gray-500 leading-relaxed">Earn dividends effortlessly and manage your growing earnings with a modern dashboard.</p>
-                </div>
-                <span class="absolute top-4 right-6 text-4xl font-black text-gray-100 select-none pointer-events-none">2</span>
-            </div>
+       <% if (member.status === 'approved') { %>
+  <p style="margin-top:16px; font-size:13px; color: var(--muted);">
+    You're a fully registered member. You can now purchase shares and access member benefits.
+  </p>
+  <a href="/shares/dashboard" class="btn btn-primary" style="display:block; text-align:center; text-decoration:none; margin-top:18px;">
+    Go to Dashboard
+  </a>
+<% } %>
+      </div>
+
+    <% } else { %>
+      <!-- NOT REGISTERED YET: welcome -> terms -> form -->
+      <form action="/shares/register" method="POST" id="registerForm">
+        <div class="card" id="step1">
+          <h2>Welcome to Fintech Smart SACCO</h2>
+          <p class="intro">
+            Join our savings and credit cooperative and start growing your wealth with us.
+            Please read the terms and conditions below before proceeding.
+          </p>
+
+          <div class="terms-box">
+            <h3>1. Membership</h3>
+            <p>Membership is open to all registered users of the platform who complete the registration process and pay the applicable registration fee.</p>
+
+            <h3>2. Registration Fee</h3>
+            <p>A one-time, non-refundable registration fee (currently KES <%= registrationFee %>) is required to activate SACCO membership. This fee is deducted directly from your wallet balance.</p>
+
+            <h3>3. Shares & Contributions</h3>
+            <p>Members may acquire shares and make contributions in accordance with the SACCO's savings and investment guidelines, subject to periodic review by the administration.</p>
+
+            <h3>4. Member Conduct</h3>
+            <p>Members agree to provide accurate personal information and to notify the SACCO of any changes to their details.</p>
+
+            <h3>5. Approval</h3>
+            <p>Membership applications are subject to review and approval by the SACCO administration. Approval is not guaranteed and may be declined at the administration's discretion.</p>
+
+            <h3>6. Changes to Terms</h3>
+            <p>The SACCO reserves the right to amend these terms and conditions, including fees, at any time. Members will be notified of material changes.</p>
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="acceptedTerms" name="acceptedTerms" value="true">
+            <label for="acceptedTerms">I have read and agree to the terms and conditions above</label>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="proceedBtn" disabled>
+            Accept & Continue
+          </button>
         </div>
 
-        <!-- Integrated Notification / Call To Action Footer Card -->
-        <div id="notify-section" class="w-full max-w-3xl mx-auto bg-white border border-gray-100 shadow-md sm:shadow-sm rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-left">
-            <div class="space-y-1 text-center sm:text-left">
-                <h4 class="text-lg font-bold text-darkblue">Stay Informed</h4>
-                <p class="text-sm text-gray-400">Be First to Access.</p>
+        <div class="card" id="step2">
+          <h2>Membership Registration</h2>
+          <p class="sub">Fill in your details to complete your SACCO membership.</p>
+
+          <div class="fee-banner">
+            <div>
+              <div class="fee-label">Registration Fee (deducted from wallet)</div>
+              <div class="fee-amount">KES <%= registrationFee %></div>
             </div>
-            
-            <form class="w-full sm:w-auto flex flex-col sm:flex-row gap-3 flex-grow max-w-md justify-end">
-                <input 
-                    type="email" 
-                    placeholder="Email" 
-                    required 
-                    class="w-full sm:max-w-xs px-4 py-3 rounded-xl bg-lightbg border border-gray-200 text-darkblue focus:outline-none focus:border-brightgreen text-sm transition placeholder-gray-400"
-                >
-                <button 
-                    type="submit" 
-                    class="w-full sm:w-auto bg-brightgreen hover:bg-[#00A36C] text-white font-bold text-sm px-6 py-3 rounded-xl transition shadow-md shadow-brightgreen/10 whitespace-nowrap"
-                >
-                    Notify Me
-                </button>
-            </form>
+            <div style="text-align:right;">
+              <div class="fee-label">Wallet Balance</div>
+              <div style="font-weight:700;">KES <%= walletBalance %></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="fullName" placeholder="e.g. Jane Wanjiru Mwangi" required>
+          </div>
+
+          <div class="form-group">
+            <label>ID Number</label>
+            <input type="text" name="idNumber" placeholder="National ID / Passport No." required>
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" placeholder="e.g. 0712345678" required>
+          </div>
+
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label>Occupation</label>
+            <input type="text" name="occupation" placeholder="e.g. Business Owner" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            Pay KES <%= registrationFee %> & Register
+          </button>
+          <button type="button" class="btn btn-secondary" id="backBtn">Back</button>
         </div>
+      </form>
+    <% } %>
+  </div>
 
-    </main>
+  <script>
+    const checkbox   = document.getElementById('acceptedTerms');
+    const proceedBtn = document.getElementById('proceedBtn');
+    const backBtn    = document.getElementById('backBtn');
+    const step1      = document.getElementById('step1');
+    const step2      = document.getElementById('step2');
 
-    <!-- Footer copyright section -->
-    <footer class="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-gray-400 border-t border-gray-200/50 mt-10">
-        &copy; 2026 Fintech Connect. All rights reserved.
-    </footer>
+    if (checkbox) {
+      checkbox.addEventListener('change', () => {
+        proceedBtn.disabled = !checkbox.checked;
+      });
 
+      proceedBtn.addEventListener('click', () => {
+        if (!checkbox.checked) return;
+        step1.style.display = 'none';
+        step2.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      backBtn.addEventListener('click', () => {
+        step2.style.display = 'none';
+        step1.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  </script>
 </body>
 </html>
