@@ -6,6 +6,11 @@ const transactionSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    member: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "SaccoMember"
+        // not required — only present for SACCO-related transactions
+    },
     amount: {
         type: Number,
         required: true
@@ -17,7 +22,17 @@ const transactionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ["deposit", "withdrawal", "referral", "task", "shares"],
+        enum: [
+            "deposit",
+            "withdrawal",
+            "referral",
+            "task",
+            "shares",
+            "registration_fee",
+            "loan_disbursement",
+            "loan_repayment",
+            "dividend"
+        ],
         default: "deposit"
     },
     method: {
@@ -32,7 +47,15 @@ const transactionSchema = new mongoose.Schema({
     },
     checkoutRequestID: {
         type: String
+    },
+    description: {
+        type: String
+    },
+    balanceAfter: {
+        type: Number
     }
 }, { timestamps: true });
+
+transactionSchema.index({ member: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Transaction", transactionSchema);

@@ -18,7 +18,16 @@ const saccoMemberSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "approved", "rejected"],
     default: "pending"
-  }
+  },
+
+  // --- Dashboard fields ---
+  availableSavings:  { type: Number, default: 0 },
+  lockedSavings:      { type: Number, default: 0 },
+  totalShares:        { type: Number, default: 0 },
+  shareValue:         { type: Number, default: 0 }, // KES per share
+  referralEarnings:   { type: Number, default: 0 },
+  totalDividends:     { type: Number, default: 0 },
+  loanLimit:           { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model("SaccoMember", saccoMemberSchema);

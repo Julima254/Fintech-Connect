@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SACCO Dashboard — Fintech Smart SACCO</title>
+  <script src="/js/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --navy: #F4F7FC;
+      --navy-deep: #FFFFFF;
+      --card: #FFFFFF;
+      --card-alt: #F0F4FA;
+      --green: #00B85C;
+      --green-dim: #009E4E;
+      --text: #16233D;
+      --muted: #6B7A94;
+      --danger: #E03131;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
+      color: var(--text);
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      overflow: hidden; /* stops the .grid's top margin from collapsing up through body into the header */
+      min-height: 100vh;
+    }
+
+    .page-content {
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 0 0 24px;
+      font-size: 14px;
+    }
+
+    .accent { color: var(--green); }
+
+    .grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(0,184,92,0.15);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 14px rgba(16,38,73,0.08);
+    }
+
+    .card .label {
+      color: var(--muted);
+      font-size: 12.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .card .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card .value.green { color: var(--green); }
+    .card .value.danger { color: var(--danger); }
+
+    .section {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(0,184,92,0.10);
+      box-shadow: 0 4px 14px rgba(16,38,73,0.06);
+    }
+
+    .section h2 {
+      font-size: 16px;
+      margin: 0 0 16px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(16,38,73,0.08);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11.5px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .badge.deposit, .badge.dividend, .badge.referral, .badge.shares {
+      background: rgba(0,184,92,0.12);
+      color: var(--green);
+    }
+
+    .badge.withdrawal, .badge.loan_repayment {
+      background: rgba(224,49,49,0.12);
+      color: var(--danger);
+    }
+
+    .badge.loan_disbursement, .badge.registration_fee, .badge.task {
+      background: rgba(107,122,148,0.12);
+      color: var(--muted);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    .progress-track {
+      background: rgba(16,38,73,0.08);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green-dim), var(--green));
+      border-radius: 999px;
+    }
+
+    .loan-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13.5px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .loan-row span:last-child { color: var(--text); font-weight: 600; }
+
+    .guarantor-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(16,38,73,0.08);
+    }
+
+    .guarantor-item:last-child { border-bottom: none; }
+
+    .guarantor-info .name { font-weight: 600; font-size: 14px; }
+    .guarantor-info .meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-accept {
+      background: var(--green);
+      color: #FFFFFF;
+      margin-right: 8px;
+    }
+
+    .btn-decline {
+      background: rgba(224,49,49,0.12);
+      color: var(--danger);
+    }
+
+    .empty-state {
+      color: var(--muted);
+      font-size: 13.5px;
+      padding: 12px 0;
+    }
+  </style>
+</head>
+<body>
+<%- include('partials/header.ejs'); -%>
+
+<div class="page-content">
+
+  <!-- Summary Cards -->
+  <div class="grid">
+    <div class="card">
+      <div class="label">Total Savings</div>
+      <div class="value green">KES <%= totalSavings.toLocaleString() %></div>
+    </div>
+    <div class="card">
+      <div class="label">Available Savings</div>
+      <div class="value">KES <%= member.availableSavings.toLocaleString() %></div>
+    </div>
+    <div class="card">
+      <div class="label">Locked Savings</div>
+      <div class="value">KES <%= member.lockedSavings.toLocaleString() %></div>
+    </div>
+    <div class="card">
+      <div class="label">Total Shares</div>
+      <div class="value"><%= member.totalShares.toLocaleString() %></div>
+    </div>
+    <div class="card">
+      <div class="label">Share Value</div>
+      <div class="value green">KES <%= member.shareValue.toLocaleString() %></div>
+    </div>
+    <div class="card">
+      <div class="label">Outstanding Loan</div>
+      <div class="value <%= activeLoan ? 'danger' : '' %>">
+        KES <%= (activeLoan ? activeLoan.outstandingBalance : 0).toLocaleString() %>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Loan Limit</div>
+      <div class="value">KES <%= member.loanLimit.toLocaleString() %></div>
+    </div>
+    <div class="card">
+      <div class="label">Referral Earnings</div>
+      <div class="value green">KES <%= member.referralEarnings.toLocaleString() %></div>
+    </div>
+    <div class="card">
+      <div class="label">Total Dividends Received</div>
+      <div class="value green">KES <%= member.totalDividends.toLocaleString() %></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Left column -->
+    <div>
+      <!-- Savings Growth Chart -->
+      <div class="section">
+        <h2><span class="dot"></span> Savings Growth</h2>
+        <canvas id="growthChart" height="90"></canvas>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="section">
+        <h2><span class="dot"></span> Recent Transactions</h2>
+        <% if (recentTransactions.length === 0) { %>
+          <p class="empty-state">No transactions yet.</p>
+        <% } else { %>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Amount (KES)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentTransactions.forEach(tx => { %>
+                <tr>
+                  <td><%= tx.createdAt.toLocaleDateString() %></td>
+                  <td><span class="badge <%= tx.type %>"><%= tx.type.replace(/_/g, " ") %></span></td>
+                  <td><%= tx.description || "—" %></td>
+                  <td><%= tx.amount.toLocaleString() %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div>
+      <!-- Loan Summary -->
+      <div class="section">
+        <h2><span class="dot"></span> Loan Summary</h2>
+        <% if (activeLoan) { %>
+          <div class="loan-row"><span>Principal</span><span>KES <%= activeLoan.principal.toLocaleString() %></span></div>
+          <div class="loan-row"><span>Outstanding</span><span>KES <%= activeLoan.outstandingBalance.toLocaleString() %></span></div>
+          <div class="loan-row"><span>Interest Rate</span><span><%= activeLoan.interestRate %>%</span></div>
+          <div class="loan-row"><span>Status</span><span><%= activeLoan.status %></span></div>
+          <% if (activeLoan.dueDate) { %>
+            <div class="loan-row"><span>Due Date</span><span><%= activeLoan.dueDate.toLocaleDateString() %></span></div>
+          <% } %>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: <%= Math.min(100, Math.round((1 - activeLoan.outstandingBalance / activeLoan.principal) * 100)) %>%;"></div>
+          </div>
+        <% } else { %>
+          <p class="empty-state">You have no active or pending loans.</p>
+        <% } %>
+      </div>
+
+      <!-- Pending Guarantor Requests -->
+      <div class="section">
+        <h2><span class="dot"></span> Pending Guarantor Requests</h2>
+        <% if (pendingGuarantorRequests.length === 0) { %>
+          <p class="empty-state">No pending requests.</p>
+        <% } else { %>
+          <% pendingGuarantorRequests.forEach(req => { %>
+            <div class="guarantor-item">
+              <div class="guarantor-info">
+                <div class="name"><%= req.loan.member.fullName %></div>
+                <div class="meta">Guarantee amount: KES <%= req.amountGuaranteed.toLocaleString() %></div>
+              </div>
+              <div>
+                <form method="POST" action="/shares/guarantor/<%= req._id %>/respond" style="display:inline;">
+                  <input type="hidden" name="decision" value="accepted">
+                  <button class="btn btn-accept" type="submit">Accept</button>
+                </form>
+                <form method="POST" action="/shares/guarantor/<%= req._id %>/respond" style="display:inline;">
+                  <input type="hidden" name="decision" value="declined">
+                  <button class="btn btn-decline" type="submit">Decline</button>
+                </form>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+  <script>
+  if (typeof Chart === "undefined") {
+    console.error("Chart.js failed to load — check /js/chart.umd.min.js exists in your public folder.");
+  } else {
+    const ctx = document.getElementById('growthChart').getContext('2d');
+    const labels = <%- growthLabels %>;
+    const values = <%- growthValues %>;
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Net Savings Movement (KES)',
+          data: values,
+          borderColor: '#00B85C',
+          backgroundColor: 'rgba(0,184,92,0.12)',
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#00B85C',
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#6B7A94' } } },
+        scales: {
+          x: { ticks: { color: '#6B7A94' }, grid: { color: 'rgba(16,38,73,0.05)' } },
+          y: { ticks: { color: '#6B7A94' }, grid: { color: 'rgba(16,38,73,0.05)' } }
+        }
+      }
+    });
+  }
+</script>
+<%- include('partials/footer.ejs'); -%>
+
+</body>
+</html>
