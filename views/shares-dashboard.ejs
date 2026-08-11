@@ -163,6 +163,28 @@
       .two-col { grid-template-columns: 1fr; }
     }
 
+    /* Force summary cards into a 2-column layout on mobile */
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .card {
+        padding: 12px 10px;
+      }
+      .card .label {
+        font-size: 10.5px;
+        margin-bottom: 6px;
+      }
+      .card .value {
+        font-size: 16px;
+        word-break: break-word;
+      }
+      .page-content {
+        padding: 14px;
+      }
+    }
+
     .progress-track {
       background: rgba(16,38,73,0.08);
       border-radius: 999px;
